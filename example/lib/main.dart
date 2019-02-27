@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_mindwave_mobile_2/flutter_mindwave_mobile_2.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 void main() => runApp(MyApp());
 
@@ -12,45 +12,102 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-
-  @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      platformVersion = await FlutterMindwaveMobile_2.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
-  }
+  FlutterBlue flutterBlue = FlutterBlue.instance;
+  
+  String _connectingStatus = 'disconnected';
+  StreamSubscription _scanSubscription;
+  StreamSubscription _deviceConnection;
 
   @override
   Widget build(BuildContext context) {
+    var connectionStatusText = 'Connect';
+    var connectionImageUrl = 'images/nosignal_v1.png';
+    var handleButton = _scan;
+    switch(_connectingStatus) {
+      case 'scanning': {
+        connectionStatusText = 'Scanning...';
+        connectionImageUrl = 'images/connecting1_v1.png';
+        handleButton = null;
+      }
+      break;
+      case 'connecting': {
+        connectionStatusText = 'Connecting...';
+        connectionImageUrl = 'images/connecting2_v1.png';
+        handleButton = null;
+      }
+      break;
+      case 'connected': {
+        connectionStatusText = 'Connected';
+        connectionImageUrl = 'images/connected_v1.png';
+        handleButton = _disconnect;
+      }
+      break;
+    }
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('Flutter MindWave Mobile 2 Plugin Example App'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  RaisedButton(
+                    onPressed: handleButton,
+                    child: Text(connectionStatusText),
+                  ),
+                  Image.asset(connectionImageUrl, width: 100.0, height: 100.0),
+                ],
+              ),
+            ],
+          )
         ),
       ),
     );
+  }
+
+  void _scan() {
+    // Start scanning
+    setState(() {
+      _connectingStatus = 'scanning';
+    });
+    _scanSubscription = flutterBlue
+        .scan()
+        .listen((ScanResult scanResult) {
+          var name = scanResult.device.name;
+          if (name == 'MindWave Mobile') {
+            _scanSubscription.cancel();
+            _connect(scanResult.device);
+          }
+        });
+  }
+
+  void _connect(BluetoothDevice device) {
+    setState(() {
+      _connectingStatus = 'connecting';
+    });
+    _deviceConnection = flutterBlue
+        .connect(device)
+        .listen((BluetoothDeviceState state) {
+          if(state == BluetoothDeviceState.connected) {
+            setState(() {
+              _connectingStatus = 'connected';
+            });
+          }
+          // Keep retrying
+          else if (state == BluetoothDeviceState.disconnected) {
+            _deviceConnection.cancel();
+            _connect(device);
+          }
+        });
+  }
+
+  void _disconnect() {
+    _deviceConnection.cancel();
+    setState(() {
+      _connectingStatus = 'disconnected';
+    });
   }
 }
