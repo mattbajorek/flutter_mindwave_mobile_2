@@ -37,7 +37,7 @@ class _MyAppState extends State<MyApp> {
       }
       break;
       case 'connected': {
-        connectionStatusText = 'Connected';
+        connectionStatusText = 'Disconnect';
         connectionImageUrl = 'images/connected_v1.png';
         handleButton = _disconnect;
       }
@@ -88,24 +88,26 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _connectingStatus = 'connecting';
     });
-    _deviceConnection = flutterBlue
-        .connect(device)
-        .listen((BluetoothDeviceState state) {
-          if(state == BluetoothDeviceState.connected) {
-            setState(() {
-              _connectingStatus = 'connected';
-            });
-          }
-          // Keep retrying
-          else if (state == BluetoothDeviceState.disconnected) {
-            _deviceConnection.cancel();
-            _connect(device);
-          }
-        });
+    FlutterMindWaveMobile2
+        .connect(device.id.toString());
+//    _deviceConnection = flutterBlue
+//        .connect(device)
+//        .listen((BluetoothDeviceState state) {
+//          if(state == BluetoothDeviceState.connected) {
+//            setState(() {
+//              _connectingStatus = 'connected';
+//            });
+//          }
+//          // Keep retrying
+//          else if (state == BluetoothDeviceState.disconnected) {
+//            _deviceConnection.cancel();
+//            _connect(device);
+//          }
+//        });
   }
 
   void _disconnect() {
-    _deviceConnection.cancel();
+//    _deviceConnection.cancel();
     setState(() {
       _connectingStatus = 'disconnected';
     });
