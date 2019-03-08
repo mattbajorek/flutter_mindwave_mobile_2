@@ -252,7 +252,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" thin";
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" thin\n";
 		};
 		7BDDE0909E146EC7EEE1B6D5 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -386,7 +386,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
-					"$(PROJECT_DIR)/.symlinks/plugins/flutter_mindwave_mobile_2/ios/bin",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.flutterMindwaveMobile2Example;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -513,7 +512,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
-					"$(PROJECT_DIR)/.symlinks/plugins/flutter_mindwave_mobile_2/ios/bin",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.flutterMindwaveMobile2Example;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -538,7 +536,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
-					"$(PROJECT_DIR)/.symlinks/plugins/flutter_mindwave_mobile_2/ios/bin",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.flutterMindwaveMobile2Example;
 				PRODUCT_NAME = "$(TARGET_NAME)";
