@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 const NAMESPACE = 'flutter_mindwave_mobile_2';
 
 class FlutterMindWaveMobile2 {
+  final StreamController<MWMConnectionState> _mwmConnectionStreamController = StreamController<MWMConnectionState>();
+  
   final MethodChannel _connectionChannel = MethodChannel('$NAMESPACE/connection');
   final EventChannel _eegSampleChannel = EventChannel('$NAMESPACE/eegSample');
   final EventChannel _eSenseChannel = EventChannel('$NAMESPACE/eSense');
@@ -14,12 +16,22 @@ class FlutterMindWaveMobile2 {
   final EventChannel _mwmBaudRateChannel = EventChannel('$NAMESPACE/mwmBaudRate');
   final EventChannel _exceptionMessageChannel = EventChannel('$NAMESPACE/exceptionMessage');
 
-  final StreamController<MWMState> _mwmConnectionStreamController = StreamController<MWMState>();
+  FlutterMindWaveMobile2() {
+    _connectionChannel.setMethodCallHandler(handleConnection);
+  }
 
-  Stream<MWMState> connect(String deviceID) {
-    _mwmConnectionStreamController.add(MWMState.connecting);
+  Stream<MWMConnectionState> connect(String deviceID) {
+    _mwmConnectionStreamController.add(MWMConnectionState.connecting);
     _connectionChannel.invokeMethod('connect', deviceID);
     return _mwmConnectionStreamController.stream;
+  }
+
+  Future<dynamic> handleConnection(MethodCall call) async {
+    if (call.method == 'connected') {
+      _mwmConnectionStreamController.add(MWMConnectionState.connected);
+    } else if (call.method == 'disconnected') {
+      _mwmConnectionStreamController.add(MWMConnectionState.disconnected);
+    }
   }
 
   // Receives eegSample data
@@ -70,7 +82,7 @@ class FlutterMindWaveMobile2 {
   }
 }
 
-enum MWMState {
+enum MWMConnectionState {
   disconnected,
   scanning, // not used in package, but used in example
   connecting,

@@ -12,11 +12,12 @@
 @end
 
 @interface MWMDelegateHandler : NSObject<MWMDelegate>
--(id)initWithChannels:(FlutterMindWaveMobile2StreamHandler*) eegSampleChannelStreamHandler
-                      eSenseChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eSenseChannelStreamHandler
-                      eegPowerLowBetaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerLowBetaChannelStreamHandler
-                      eegPowerDeltaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerDeltaChannelStreamHandler
-                      eegBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegBlinkChannelStreamHandler
-                      mwmBaudRateChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) mwmBaudRateChannelStreamHandler
-                      exceptionMessageChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) exceptionMessageChannelStreamHandler;
+-(id)initWithChannels: (FlutterMethodChannel*) connectionChannel
+                       eegSampleChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegSampleChannelStreamHandler
+                       eSenseChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eSenseChannelStreamHandler
+                       eegPowerLowBetaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerLowBetaChannelStreamHandler
+                       eegPowerDeltaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerDeltaChannelStreamHandler
+                       eegBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegBlinkChannelStreamHandler
+                       mwmBaudRateChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) mwmBaudRateChannelStreamHandler
+                       exceptionMessageChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) exceptionMessageChannelStreamHandler;
 @end

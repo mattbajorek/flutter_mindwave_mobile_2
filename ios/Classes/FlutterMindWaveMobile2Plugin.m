@@ -3,7 +3,7 @@
 
 @interface FlutterMindWaveMobile2Plugin ()
 @property(nonatomic, retain) NSObject<FlutterPluginRegistrar> *registrar;
-@property(nonatomic, retain) FlutterMethodChannel *connectionChannel;
+@property(nonatomic, retain) FlutterMethodChannel* connectionChannel;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* eegSampleChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* eSenseChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* eegPowerLowBetaChannelStreamHandler;
@@ -83,7 +83,8 @@
   // Set up MWMdevice
   MWMDevice* mwmDevice = [MWMDevice sharedInstance];
   MWMDelegateHandler* mwmDelegateHandler = [[MWMDelegateHandler alloc]
-                                            initWithChannels: eegSampleChannelStreamHandler
+                                            initWithChannels: connectionChannel
+                                            eegSampleChannelStreamHandler: eegSampleChannelStreamHandler
                                             eSenseChannelStreamHandler: eSenseChannelStreamHandler
                                             eegPowerLowBetaChannelStreamHandler: eegPowerLowBetaChannelStreamHandler
                                             eegPowerDeltaChannelStreamHandler: eegPowerDeltaChannelStreamHandler
@@ -119,18 +120,19 @@
 @implementation FlutterMindWaveMobile2StreamHandler
 
 - (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)eventSink {
-    self.sink = eventSink;
-    return nil;
+  self.sink = eventSink;
+  return nil;
 }
 
 - (FlutterError*)onCancelWithArguments:(id)arguments {
-    self.sink = nil;
-    return nil;
+  self.sink = nil;
+  return nil;
 }
 
 @end
 
 @interface MWMDelegateHandler ()
+@property(nonatomic, retain) FlutterMethodChannel* _connectionChannel;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _eegSampleChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _eSenseChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _eegPowerLowBetaChannelStreamHandler;
@@ -142,95 +144,90 @@
 
 @implementation MWMDelegateHandler
 
--(id)initWithChannels:(FlutterMindWaveMobile2StreamHandler*) eegSampleChannelStreamHandler
-                     eSenseChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eSenseChannelStreamHandler
-                     eegPowerLowBetaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerLowBetaChannelStreamHandler
-                     eegPowerDeltaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerDeltaChannelStreamHandler
-                     eegBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegBlinkChannelStreamHandler
-                     mwmBaudRateChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) mwmBaudRateChannelStreamHandler
-                     exceptionMessageChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) exceptionMessageChannelStreamHandler {
-    self = [super init];
-    if (self) {
-      self._eegSampleChannelStreamHandler = eegSampleChannelStreamHandler;
-      self._eSenseChannelStreamHandler = eSenseChannelStreamHandler;
-      self._eegPowerLowBetaChannelStreamHandler = eegPowerLowBetaChannelStreamHandler;
-      self._eegPowerDeltaChannelStreamHandler = eegPowerDeltaChannelStreamHandler;
-      self._eegBlinkChannelStreamHandler = eegBlinkChannelStreamHandler;
-      self._mwmBaudRateChannelStreamHandler = mwmBaudRateChannelStreamHandler;
-      self._exceptionMessageChannelStreamHandler = exceptionMessageChannelStreamHandler;
-    }
-    return self;
-}
-
-- (void)deviceFound:(NSString *)devName MfgID:(NSString *)mfgID DeviceID:(NSString *)deviceID {
-    // Bluetooth scanning done with another package
-    NSLog(@"MWM device found");
+-(id)initWithChannels: (FlutterMethodChannel*) connectionChannel
+                       eegSampleChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegSampleChannelStreamHandler
+                       eSenseChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eSenseChannelStreamHandler
+                       eegPowerLowBetaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerLowBetaChannelStreamHandler
+                       eegPowerDeltaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerDeltaChannelStreamHandler
+                       eegBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegBlinkChannelStreamHandler
+                       mwmBaudRateChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) mwmBaudRateChannelStreamHandler
+                       exceptionMessageChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) exceptionMessageChannelStreamHandler {
+  self = [super init];
+  if (self) {
+    self._connectionChannel = connectionChannel;
+    self._eegSampleChannelStreamHandler = eegSampleChannelStreamHandler;
+    self._eSenseChannelStreamHandler = eSenseChannelStreamHandler;
+    self._eegPowerLowBetaChannelStreamHandler = eegPowerLowBetaChannelStreamHandler;
+    self._eegPowerDeltaChannelStreamHandler = eegPowerDeltaChannelStreamHandler;
+    self._eegBlinkChannelStreamHandler = eegBlinkChannelStreamHandler;
+    self._mwmBaudRateChannelStreamHandler = mwmBaudRateChannelStreamHandler;
+    self._exceptionMessageChannelStreamHandler = exceptionMessageChannelStreamHandler;
+  }
+  return self;
 }
 
 - (void)didConnect {
-    NSLog(@"MWM did connect");
+  [self._connectionChannel invokeMethod:@"connected" arguments: nil];
 }
 
 - (void)didDisconnect {
-    NSLog(@"MWM did disconnect");
+  [self._connectionChannel invokeMethod:@"disconnected" arguments: nil];
 }
 
 // Raw sample data
 -(void)eegSample:(int) sample {
-    if(self._eegSampleChannelStreamHandler.sink != nil) {
-        self._eegSampleChannelStreamHandler.sink(@{
-                                                   @"sample": @(sample),
-                                                   });
-    }
+  if(self._eegSampleChannelStreamHandler.sink != nil) {
+    self._eegSampleChannelStreamHandler.sink(@{@"sample": @(sample)});
+  }
 };
 
 // Emotional Sense call back
 -(void)eSense:(int)poorSignal Attention:(int)attention Meditation:(int)meditation {
-    if(self._eSenseChannelStreamHandler.sink != nil) {
-        self._eSenseChannelStreamHandler.sink(@{
-                                                @"poorSignal": @(poorSignal),
-                                                @"attention": @(attention),
-                                                @"meditation": @(meditation),
-                                                });
-    }
+  if(self._eSenseChannelStreamHandler.sink != nil) {
+    self._eSenseChannelStreamHandler.sink(@{
+                                            @"poorSignal": @(poorSignal),
+                                            @"attention": @(attention),
+                                            @"meditation": @(meditation),
+                                            });
+  }
 }
 
 -(void)eegPowerLowBeta:(int)lowBeta HighBeta:(int)highBeta LowGamma:(int)lowGamma MidGamma:(int)midGamma {
-    if(self._eegPowerLowBetaChannelStreamHandler.sink != nil) {
-        self._eegPowerLowBetaChannelStreamHandler.sink(@{
-                                                         @"lowBeta": @(lowBeta),
-                                                         @"highBeta": @(highBeta),
-                                                         @"lowGamma": @(lowGamma),
-                                                         @"midGamma": @(midGamma),
-                                                         });
-    }
+  if(self._eegPowerLowBetaChannelStreamHandler.sink != nil) {
+    self._eegPowerLowBetaChannelStreamHandler.sink(@{
+                                                     @"lowBeta": @(lowBeta),
+                                                     @"highBeta": @(highBeta),
+                                                     @"lowGamma": @(lowGamma),
+                                                     @"midGamma": @(midGamma),
+                                                     });
+  }
 }
 
 -(void)eegPowerDelta:(int)delta Theta:(int)theta LowAlpha:(int)lowAlpha HighAlpha:(int)highAlpha {
-    if(self._eegPowerDeltaChannelStreamHandler.sink != nil) {
-        self._eegPowerDeltaChannelStreamHandler.sink(@{
-                                                       @"delta": @(delta),
-                                                       @"theta": @(theta),
-                                                       @"lowAlpha": @(lowAlpha),
-                                                       @"highAlpha": @(highAlpha),
-                                                       });
-    }
+  if(self._eegPowerDeltaChannelStreamHandler.sink != nil) {
+    self._eegPowerDeltaChannelStreamHandler.sink(@{
+                                                   @"delta": @(delta),
+                                                   @"theta": @(theta),
+                                                   @"lowAlpha": @(lowAlpha),
+                                                   @"highAlpha": @(highAlpha),
+                                                   });
+  }
 }
 
 -(void)eegBlink:(int)blinkValue {
-    if(self._eegBlinkChannelStreamHandler.sink != nil) {
-        self._eegBlinkChannelStreamHandler.sink(@{@"blinkValue": @(blinkValue)});
-    }
+  if(self._eegBlinkChannelStreamHandler.sink != nil) {
+    self._eegBlinkChannelStreamHandler.sink(@{@"blinkValue": @(blinkValue)});
+  }
 }
 
 // Hardware configuration call back
 -(void)mwmBaudRate:(int)baudRate NotchFilter:(int)notchFilter {
-    if(self._mwmBaudRateChannelStreamHandler.sink != nil) {
-        self._mwmBaudRateChannelStreamHandler.sink(@{
-                                              @"baudRate": @(baudRate),
-                                              @"notchFilter": @(notchFilter)
-                                              });
-    }
+  if(self._mwmBaudRateChannelStreamHandler.sink != nil) {
+      self._mwmBaudRateChannelStreamHandler.sink(@{
+                                                   @"baudRate": @(baudRate),
+                                                   @"notchFilter": @(notchFilter),
+                                                   });
+  }
 }
 
 //Ble exception event
