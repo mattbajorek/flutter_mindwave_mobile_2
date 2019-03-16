@@ -16,7 +16,12 @@ class _MyAppState extends State<MyApp> {
   
   String _connectingStatus = 'disconnected';
   StreamSubscription _scanSubscription;
-  StreamSubscription _deviceConnection;
+  StreamSubscription _eeSampleSubscription;
+  StreamSubscription _eSenseSubscription;
+  StreamSubscription _eegPowerLowBetaSubscription;
+  StreamSubscription _eegPowerDeltaSubscription;
+  StreamSubscription _eegBlinkSubscription;
+  StreamSubscription _mwmBaudRateSubscription;
 
   @override
   Widget build(BuildContext context) {
@@ -89,25 +94,43 @@ class _MyAppState extends State<MyApp> {
       _connectingStatus = 'connecting';
     });
     FlutterMindWaveMobile2
-        .connect(device.id.toString());
-//    _deviceConnection = flutterBlue
-//        .connect(device)
-//        .listen((BluetoothDeviceState state) {
-//          if(state == BluetoothDeviceState.connected) {
-//            setState(() {
-//              _connectingStatus = 'connected';
-//            });
-//          }
-//          // Keep retrying
-//          else if (state == BluetoothDeviceState.disconnected) {
-//            _deviceConnection.cancel();
-//            _connect(device);
-//          }
-//        });
+        .connect(device.id.toString())
+        .then((_) {
+          setState(() {
+            _connectingStatus = 'connected';
+          });
+          _eeSampleSubscription = FlutterMindWaveMobile2
+            .onEEGSampleData()
+            .listen(handleData);
+          _eSenseSubscription = FlutterMindWaveMobile2
+            .onESenseData()
+            .listen(handleData);
+          _eegPowerLowBetaSubscription = FlutterMindWaveMobile2
+            .onEEGPowerLowBetaData()
+            .listen(handleData);
+          _eegPowerDeltaSubscription = FlutterMindWaveMobile2
+            .onEEGPowerDeltaData()
+            .listen(handleData);
+          _eegBlinkSubscription = FlutterMindWaveMobile2
+            .onEEGBlinkData()
+            .listen(handleData);
+          _mwmBaudRateSubscription = FlutterMindWaveMobile2
+            .onMWMBaudRateData()
+            .listen(handleData);
+        });
+  }
+
+  void handleData(data) {
+    print(data.toString());
   }
 
   void _disconnect() {
-//    _deviceConnection.cancel();
+    if (_eeSampleSubscription != null) _eeSampleSubscription.cancel();
+    if (_eSenseSubscription != null) _eSenseSubscription.cancel();
+    if (_eegPowerLowBetaSubscription != null) _eegPowerLowBetaSubscription.cancel();
+    if (_eegPowerDeltaSubscription != null) _eegPowerDeltaSubscription.cancel();
+    if (_eegBlinkSubscription != null) _eegBlinkSubscription.cancel();
+    if (_mwmBaudRateSubscription != null) _mwmBaudRateSubscription.cancel();
     setState(() {
       _connectingStatus = 'disconnected';
     });
