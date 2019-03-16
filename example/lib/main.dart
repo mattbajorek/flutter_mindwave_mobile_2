@@ -13,38 +13,70 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   FlutterBlue flutterBlue = FlutterBlue.instance;
+  FlutterMindWaveMobile2 flutterMindWaveMobile2 = FlutterMindWaveMobile2();
   
-  String _connectingStatus = 'disconnected';
+  MWMState _connectingStatus = MWMState.disconnected;
   StreamSubscription _scanSubscription;
-  StreamSubscription _eeSampleSubscription;
+  StreamSubscription _eegSampleSubscription;
   StreamSubscription _eSenseSubscription;
   StreamSubscription _eegPowerLowBetaSubscription;
   StreamSubscription _eegPowerDeltaSubscription;
   StreamSubscription _eegBlinkSubscription;
   StreamSubscription _mwmBaudRateSubscription;
+  StreamSubscription _exceptionMessageSubscription;
+  
+  _MyAppState() {
+    _eegSampleSubscription = flutterMindWaveMobile2
+      .onEEGSampleData()
+      .listen(handleData);
+    _eSenseSubscription = flutterMindWaveMobile2
+      .onESenseData()
+      .listen(handleData);
+    _eegPowerLowBetaSubscription = flutterMindWaveMobile2
+      .onEEGPowerLowBetaData()
+      .listen(handleData);
+    _eegPowerDeltaSubscription = flutterMindWaveMobile2
+      .onEEGPowerDeltaData()
+      .listen(handleData);
+    _eegBlinkSubscription = flutterMindWaveMobile2
+      .onEEGBlinkData()
+      .listen(handleData);
+    _mwmBaudRateSubscription = flutterMindWaveMobile2
+      .onMWMBaudRateData()
+      .listen(handleData);
+    _exceptionMessageSubscription = flutterMindWaveMobile2
+      .onMWMBaudRateData()
+      .listen(handleData);
+  }
 
   @override
   Widget build(BuildContext context) {
-    var connectionStatusText = 'Connect';
-    var connectionImageUrl = 'images/nosignal_v1.png';
-    var handleButton = _scan;
+    String connectionStatusText;
+    String connectionImageUrl;
+    Function handleButton = _scan;
     switch(_connectingStatus) {
-      case 'scanning': {
+      case MWMState.scanning: {
         connectionStatusText = 'Scanning...';
         connectionImageUrl = 'images/connecting1_v1.png';
         handleButton = null;
       }
       break;
-      case 'connecting': {
+      case MWMState.connecting: {
         connectionStatusText = 'Connecting...';
         connectionImageUrl = 'images/connecting2_v1.png';
         handleButton = null;
       }
       break;
-      case 'connected': {
+      case MWMState.connected: {
         connectionStatusText = 'Disconnect';
         connectionImageUrl = 'images/connected_v1.png';
         handleButton = _disconnect;
+      }
+      break;
+      case MWMState.disconnected: {
+        connectionStatusText = 'Connect';
+        connectionImageUrl = 'images/nosignal_v1.png';
+        handleButton = _scan;
       }
       break;
     }
@@ -76,48 +108,30 @@ class _MyAppState extends State<MyApp> {
   void _scan() {
     // Start scanning
     setState(() {
-      _connectingStatus = 'scanning';
+      _connectingStatus = MWMState.scanning;
     });
     _scanSubscription = flutterBlue
-        .scan()
-        .listen((ScanResult scanResult) {
-          var name = scanResult.device.name;
-          if (name == 'MindWave Mobile') {
-            _scanSubscription.cancel();
-            _connect(scanResult.device);
-          }
-        });
+      .scan()
+      .listen((ScanResult scanResult) {
+        var name = scanResult.device.name;
+        if (name == 'MindWave Mobile') {
+          _scanSubscription.cancel();
+          _connect(scanResult.device);
+        }
+      });
   }
 
   void _connect(BluetoothDevice device) {
     setState(() {
-      _connectingStatus = 'connecting';
+      _connectingStatus = MWMState.connecting;
     });
-    FlutterMindWaveMobile2
-        .connect(device.id.toString())
-        .then((_) {
-          setState(() {
-            _connectingStatus = 'connected';
-          });
-          _eeSampleSubscription = FlutterMindWaveMobile2
-            .onEEGSampleData()
-            .listen(handleData);
-          _eSenseSubscription = FlutterMindWaveMobile2
-            .onESenseData()
-            .listen(handleData);
-          _eegPowerLowBetaSubscription = FlutterMindWaveMobile2
-            .onEEGPowerLowBetaData()
-            .listen(handleData);
-          _eegPowerDeltaSubscription = FlutterMindWaveMobile2
-            .onEEGPowerDeltaData()
-            .listen(handleData);
-          _eegBlinkSubscription = FlutterMindWaveMobile2
-            .onEEGBlinkData()
-            .listen(handleData);
-          _mwmBaudRateSubscription = FlutterMindWaveMobile2
-            .onMWMBaudRateData()
-            .listen(handleData);
+    flutterMindWaveMobile2
+      .connect(device.id.toString())
+      .listen((_) {
+        setState(() {
+          _connectingStatus = MWMState.connected;
         });
+      });
   }
 
   void handleData(data) {
@@ -125,14 +139,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _disconnect() {
-    if (_eeSampleSubscription != null) _eeSampleSubscription.cancel();
+    if (_eegSampleSubscription != null) _eegSampleSubscription.cancel();
     if (_eSenseSubscription != null) _eSenseSubscription.cancel();
     if (_eegPowerLowBetaSubscription != null) _eegPowerLowBetaSubscription.cancel();
     if (_eegPowerDeltaSubscription != null) _eegPowerDeltaSubscription.cancel();
     if (_eegBlinkSubscription != null) _eegBlinkSubscription.cancel();
     if (_mwmBaudRateSubscription != null) _mwmBaudRateSubscription.cancel();
+    if (_exceptionMessageSubscription != null) _exceptionMessageSubscription.cancel();
     setState(() {
-      _connectingStatus = 'disconnected';
+      _connectingStatus = MWMState.disconnected;
     });
   }
 }
