@@ -5,57 +5,76 @@ import 'package:flutter/services.dart';
 const NAMESPACE = 'flutter_mindwave_mobile_2';
 
 class FlutterMindWaveMobile2 {
-  static const MethodChannel _methodChannel = const MethodChannel('$NAMESPACE/methods');
-  static const EventChannel _eegSampleChannel = const EventChannel('$NAMESPACE/eegSample');
-  static const EventChannel _eSenseChannel = const EventChannel('$NAMESPACE/eSense');
-  static const EventChannel _eegPowerLowBetaChannel = const EventChannel('$NAMESPACE/eegPowerLowBeta');
-  static const EventChannel _eegPowerDeltaChannel = const EventChannel('$NAMESPACE/eegPowerDelta');
-  static const EventChannel _eegBlinkChannel = const EventChannel('$NAMESPACE/eegBlink');
-  static const EventChannel _mwmBaudRateChannel = const EventChannel('$NAMESPACE/mwmBaudRate');
+  final MethodChannel _connectionChannel = MethodChannel('$NAMESPACE/connection');
+  final EventChannel _eegSampleChannel = EventChannel('$NAMESPACE/eegSample');
+  final EventChannel _eSenseChannel = EventChannel('$NAMESPACE/eSense');
+  final EventChannel _eegPowerLowBetaChannel = EventChannel('$NAMESPACE/eegPowerLowBeta');
+  final EventChannel _eegPowerDeltaChannel = EventChannel('$NAMESPACE/eegPowerDelta');
+  final EventChannel _eegBlinkChannel = EventChannel('$NAMESPACE/eegBlink');
+  final EventChannel _mwmBaudRateChannel = EventChannel('$NAMESPACE/mwmBaudRate');
+  final EventChannel _exceptionMessageChannel = EventChannel('$NAMESPACE/exceptionMessage');
 
-  static Future<void> connect(String deviceID) async {
-    await _methodChannel.invokeMethod('connect', deviceID);
+  final StreamController<MWMState> _mwmConnectionStreamController = StreamController<MWMState>();
+
+  Stream<MWMState> connect(String deviceID) {
+    _mwmConnectionStreamController.add(MWMState.connecting);
+    _connectionChannel.invokeMethod('connect', deviceID);
+    return _mwmConnectionStreamController.stream;
   }
 
   // Receives eegSample data
-  static Stream<EEGSampleData> onEEGSampleData() {
+  Stream<EEGSampleData> onEEGSampleData() {
     return _eegSampleChannel.receiveBroadcastStream()
       .map((data) => new EEGSampleData(data['sample']));
   }
 
   // Receives eSense data
-  static Stream<ESenseData> onESenseData() {
+  Stream<ESenseData> onESenseData() {
     return _eSenseChannel.receiveBroadcastStream()
       .map((data) => new ESenseData(data['poorSignal'], data['attention'], data['meditation']));
   }
   
   // Receives eegPowerLowBeta data
-  static Stream<EEGPowerLowBetaData> onEEGPowerLowBetaData() {
+  Stream<EEGPowerLowBetaData> onEEGPowerLowBetaData() {
     return _eegPowerLowBetaChannel
       .receiveBroadcastStream()
       .map((data) => new EEGPowerLowBetaData(data['lowBeta'], data['highBeta'], data['lowGamma'], data['midGamma']));
   }
 
   // Receives eegPowerDelta data
-  static Stream<EEGPowerDeltaData> onEEGPowerDeltaData() {
+  Stream<EEGPowerDeltaData> onEEGPowerDeltaData() {
     return _eegPowerDeltaChannel
       .receiveBroadcastStream()
       .map((data) => new EEGPowerDeltaData(data['delta'], data['theta'], data['lowAlpha'], data['highAlpha']));
   }
 
   // Receives eegBlink data
-  static Stream<EEGBlinkData> onEEGBlinkData() {
+  Stream<EEGBlinkData> onEEGBlinkData() {
     return _eegBlinkChannel
       .receiveBroadcastStream()
       .map((data) => new EEGBlinkData(data['blinkValue']));
   }
 
   // Receives mwmBaudRate data
-  static Stream<MWMBaudRateData> onMWMBaudRateData() {
+  Stream<MWMBaudRateData> onMWMBaudRateData() {
     return _mwmBaudRateChannel
       .receiveBroadcastStream()
       .map((data) => new MWMBaudRateData(data['baudRate'], data['notchFilter']));
   }
+
+  // Receives exceptionMessage
+  Stream<MWMExceptionMessage> onExceptionMessage() {
+    return _exceptionMessageChannel
+      .receiveBroadcastStream()
+      .map((data) => MWMExceptionMessage.values[data['eventType']]);
+  }
+}
+
+enum MWMState {
+  disconnected,
+  scanning, // not used in package, but used in example
+  connecting,
+  connected
 }
 
 class EEGSampleData {
@@ -119,4 +138,17 @@ class MWMBaudRateData {
 
   @override
   String toString() => "baudRate: $baudRate, notchFilter: $notchFilter";
+}
+
+enum MWMExceptionMessage {
+  TGBleUnexpectedEvent,
+  TGBleConfigurationModeCanNotBeChanged,
+  TGBleFailedOtherOperationInProgress,
+  TGBleConnectFailedSuspectKeyMismatch,
+  TGBlePossibleResetDetect,
+  TGBleNewConnectionEstablished,
+  TGBleStoredConnectionInvalid,
+  TGBleConnectHeadSetDirectoryFailed,
+  TGBleBluetoothModuleError,
+  TGBleNoMfgDatainAdvertisement
 }

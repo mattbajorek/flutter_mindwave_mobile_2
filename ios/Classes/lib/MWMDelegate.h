@@ -9,17 +9,11 @@
 #import <Foundation/Foundation.h>
 #import "MWMEnum.h"
 
+// Modified from original delegate
 @protocol MWMDelegate <NSObject>
-
-//angelo: new delegate  160906
-
-//Ble Device
--(void)deviceFound:(NSString *)devName MfgID:(NSString *)mfgID DeviceID:(NSString *)deviceID;
 
 -(void)didConnect;
 -(void)didDisconnect;
-
-@optional
 
 -(void)eegSample:(int) sample;
 

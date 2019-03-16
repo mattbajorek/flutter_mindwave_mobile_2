@@ -3,13 +3,14 @@
 
 @interface FlutterMindWaveMobile2Plugin ()
 @property(nonatomic, retain) NSObject<FlutterPluginRegistrar> *registrar;
-@property(nonatomic, retain) FlutterMethodChannel *methodsChannel;
+@property(nonatomic, retain) FlutterMethodChannel *connectionChannel;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* eegSampleChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* eSenseChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* eegPowerLowBetaChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* eegPowerDeltaChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* eegBlinkChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* mwmBaudRateChannelStreamHandler;
+@property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* exceptionMessageChannelStreamHandler;
 @property(nonatomic, retain) MWMDelegateHandler* mwmDelegateHandler;
 @property(nonatomic, retain) MWMDevice *mwmDevice;
 @end
@@ -17,11 +18,11 @@
 @implementation FlutterMindWaveMobile2Plugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     
-  FlutterMethodChannel* methodsChannel = [FlutterMethodChannel
-                                          methodChannelWithName:NAMESPACE @"/methods"
-                                          binaryMessenger:[registrar messenger]];
+  FlutterMethodChannel* connectionChannel = [FlutterMethodChannel
+                                             methodChannelWithName:NAMESPACE @"/connection"
+                                             binaryMessenger:[registrar messenger]];
   FlutterMindWaveMobile2Plugin* instance = [[FlutterMindWaveMobile2Plugin alloc] init];
-  instance.methodsChannel = methodsChannel;
+  instance.connectionChannel = connectionChannel;
     
   // Set up eegSample channel
   FlutterEventChannel* eegSampleChannel = [FlutterEventChannel
@@ -70,6 +71,14 @@
   FlutterMindWaveMobile2StreamHandler* mwmBaudRateChannelStreamHandler = [[FlutterMindWaveMobile2StreamHandler alloc] init];
   instance.mwmBaudRateChannelStreamHandler = mwmBaudRateChannelStreamHandler;
   [mwmBaudRateChannel setStreamHandler:mwmBaudRateChannelStreamHandler];
+  
+  // Set up exceptionMessage channel
+  FlutterEventChannel* exceptionMessageChannel = [FlutterEventChannel
+                                                  eventChannelWithName:NAMESPACE @"/exceptionMessage"
+                                                  binaryMessenger:[registrar messenger]];
+  FlutterMindWaveMobile2StreamHandler* exceptionMessageChannelStreamHandler = [[FlutterMindWaveMobile2StreamHandler alloc] init];
+  instance.exceptionMessageChannelStreamHandler = exceptionMessageChannelStreamHandler;
+  [exceptionMessageChannel setStreamHandler:exceptionMessageChannelStreamHandler];
     
   // Set up MWMdevice
   MWMDevice* mwmDevice = [MWMDevice sharedInstance];
@@ -79,13 +88,14 @@
                                             eegPowerLowBetaChannelStreamHandler: eegPowerLowBetaChannelStreamHandler
                                             eegPowerDeltaChannelStreamHandler: eegPowerDeltaChannelStreamHandler
                                             eegBlinkChannelStreamHandler: eegBlinkChannelStreamHandler
-                                            mwmBaudRateChannelStreamHandler: mwmBaudRateChannelStreamHandler];
+                                            mwmBaudRateChannelStreamHandler: mwmBaudRateChannelStreamHandler
+                                            exceptionMessageChannelStreamHandler: exceptionMessageChannelStreamHandler];
   
   instance.mwmDelegateHandler = mwmDelegateHandler;
   [mwmDevice setDelegate:mwmDelegateHandler];
   instance.mwmDevice = mwmDevice;
     
-  [registrar addMethodCallDelegate:instance channel:methodsChannel];
+  [registrar addMethodCallDelegate:instance channel:connectionChannel];
 }
 
 // Handle flutter method calls
@@ -127,6 +137,7 @@
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _eegPowerDeltaChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _eegBlinkChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _mwmBaudRateChannelStreamHandler;
+@property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _exceptionMessageChannelStreamHandler;
 @end
 
 @implementation MWMDelegateHandler
@@ -136,7 +147,8 @@
                      eegPowerLowBetaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerLowBetaChannelStreamHandler
                      eegPowerDeltaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerDeltaChannelStreamHandler
                      eegBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegBlinkChannelStreamHandler
-                     mwmBaudRateChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) mwmBaudRateChannelStreamHandler {
+                     mwmBaudRateChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) mwmBaudRateChannelStreamHandler
+                     exceptionMessageChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) exceptionMessageChannelStreamHandler {
     self = [super init];
     if (self) {
       self._eegSampleChannelStreamHandler = eegSampleChannelStreamHandler;
@@ -145,6 +157,7 @@
       self._eegPowerDeltaChannelStreamHandler = eegPowerDeltaChannelStreamHandler;
       self._eegBlinkChannelStreamHandler = eegBlinkChannelStreamHandler;
       self._mwmBaudRateChannelStreamHandler = mwmBaudRateChannelStreamHandler;
+      self._exceptionMessageChannelStreamHandler = exceptionMessageChannelStreamHandler;
     }
     return self;
 }
@@ -218,6 +231,13 @@
                                               @"notchFilter": @(notchFilter)
                                               });
     }
+}
+
+//Ble exception event
+-(void)exceptionMessage:(TGBleExceptionEvent)eventType {
+  if (self._exceptionMessageChannelStreamHandler.sink != nil) {
+    self._exceptionMessageChannelStreamHandler.sink(@{@"eventType": @(eventType)});
+  }
 }
 
 @end
