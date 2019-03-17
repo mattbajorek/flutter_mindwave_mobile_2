@@ -72,7 +72,7 @@ class _MyAppState extends State<MyApp> {
       case MWMConnectionState.connected: {
         connectionStatusText = 'Disconnect';
         connectionImageUrl = 'images/connected_v1.png';
-        handleButton = _disconnect;
+        handleButton = _disconnectWithMessage;
       }
       break;
       case MWMConnectionState.disconnected: {
@@ -167,10 +167,13 @@ class _MyAppState extends State<MyApp> {
     if (_eegBlinkSubscription != null) _eegBlinkSubscription.cancel();
     if (_mwmBaudRateSubscription != null) _mwmBaudRateSubscription.cancel();
     if (_exceptionMessageSubscription != null) _exceptionMessageSubscription.cancel();
-    flutterMindWaveMobile2.disconnect();
     setState(() {
       _connectingState = MWMConnectionState.disconnected;
     });
+  }
+  void _disconnectWithMessage() {
+    _disconnect();
+    flutterMindWaveMobile2.disconnect();
   }
 
   void _showDialog(String message) {

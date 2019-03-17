@@ -9,3 +9,6 @@
 .settings
 .classpath
 .project
+/gradle
+gradlew
+gradlew.bat

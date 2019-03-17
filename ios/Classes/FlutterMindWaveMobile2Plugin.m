@@ -101,17 +101,23 @@
 
 // Handle flutter method calls
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if ([@"connect" isEqualToString:call.method]) {
-    NSLog(@"MWM connecting to device");
-    NSString *deviceID = [call arguments];
-    [_mwmDevice connectDevice:deviceID];
-    result(nil);
-  } else if ([@"disconnect" isEqualToString:call.method]) {
-    NSLog(@"MWM disconnecting to device");
-    [_mwmDevice disconnectDevice];
-    result(nil);
-  } else {
-    result(FlutterMethodNotImplemented);
+  @try {
+    if ([@"connect" isEqualToString:call.method]) {
+        NSLog(@"MWM connecting to device");
+        NSString *deviceID = [call arguments];
+        [_mwmDevice connectDevice:deviceID];
+        result(nil);
+    } else if ([@"disconnect" isEqualToString:call.method]) {
+      NSLog(@"MWM disconnecting to device");
+      [_mwmDevice disconnectDevice];
+      result(nil);
+    } else {
+      result(FlutterMethodNotImplemented);
+    }
+  } @catch(NSException *exception) {
+    result([FlutterError errorWithCode:exception.name
+                               message:exception.reason
+                               details:exception.description]);
   }
 }
 

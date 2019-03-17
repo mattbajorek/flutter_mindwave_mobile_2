@@ -31,8 +31,12 @@ android {
     lintOptions {
         disable 'InvalidPackage'
     }
+    sourceSets.main {
+        jniLibs.srcDir 'libs'
+        jni.srcDirs = [] //disable automatic ndk-build call
+    }
 }
 
 dependencies {
-    implementation files('libs/libStreamSDK_v1.2.0.jar')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
