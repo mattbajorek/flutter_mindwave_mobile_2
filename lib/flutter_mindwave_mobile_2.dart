@@ -26,6 +26,11 @@ class FlutterMindWaveMobile2 {
     return _mwmConnectionStreamController.stream;
   }
 
+  // Wait for disconnecting reply from native in handleConnection
+  void disconnect() {
+    _connectionChannel.invokeMethod('disconnect');
+  }
+
   Future<dynamic> handleConnection(MethodCall call) async {
     if (call.method == 'connected') {
       _mwmConnectionStreamController.add(MWMConnectionState.connected);

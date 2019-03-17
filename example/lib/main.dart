@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter_mindwave_mobile_2/flutter_mindwave_mobile_2.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_mindwave_mobile_2/flutter_mindwave_mobile_2.dart';
 
 void main() => runApp(MyApp());
 
@@ -12,6 +12,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final navigatorKey = GlobalKey<NavigatorState>();
+
   FlutterBlue flutterBlue = FlutterBlue.instance;
   FlutterMindWaveMobile2 flutterMindWaveMobile2 = FlutterMindWaveMobile2();
   
@@ -29,9 +31,9 @@ class _MyAppState extends State<MyApp> {
     // _eegSampleSubscription = flutterMindWaveMobile2
     //   .onEEGSampleData()
     //   .listen(handleData);
-    _eSenseSubscription = flutterMindWaveMobile2
-      .onESenseData()
-      .listen(handleData);
+    // _eSenseSubscription = flutterMindWaveMobile2
+    //   .onESenseData()
+    //   .listen(handleData);
     // _eegPowerLowBetaSubscription = flutterMindWaveMobile2
     //   .onEEGPowerLowBetaData()
     //   .listen(handleData);
@@ -81,6 +83,7 @@ class _MyAppState extends State<MyApp> {
       break;
     }
     return MaterialApp(
+      navigatorKey: navigatorKey,
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Flutter MindWave Mobile 2 Plugin Example App'),
@@ -110,15 +113,29 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _connectingState = MWMConnectionState.scanning;
     });
+    var found = false;
     _scanSubscription = flutterBlue
       .scan()
       .listen((ScanResult scanResult) {
         var name = scanResult.device.name;
         if (name == 'MindWave Mobile') {
+          found = true;
           _scanSubscription.cancel();
+          print("FOUND MINDWAVE MOBILE!!!");
           _connect(scanResult.device);
         }
-      });
+      }, onError: (error) {
+        _disconnect();
+        _showDialog("Is bluetooth on?");
+      }, cancelOnError: true);
+    // Cancel scan after 5 sec
+    Future.delayed(const Duration(milliseconds: 5000), () {
+      if (!found) {
+        _scanSubscription.cancel();
+        _disconnect();
+        _showDialog("Unable to find MindWave Mobile");
+      }
+    });
   }
 
   void _connect(BluetoothDevice device) {
@@ -150,8 +167,30 @@ class _MyAppState extends State<MyApp> {
     if (_eegBlinkSubscription != null) _eegBlinkSubscription.cancel();
     if (_mwmBaudRateSubscription != null) _mwmBaudRateSubscription.cancel();
     if (_exceptionMessageSubscription != null) _exceptionMessageSubscription.cancel();
+    flutterMindWaveMobile2.disconnect();
     setState(() {
       _connectingState = MWMConnectionState.disconnected;
     });
+  }
+
+  void _showDialog(String message) {
+    final context = navigatorKey.currentState.overlay.context;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Error"),
+        content: Text(message),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          FlatButton(
+            child: Text('Ok'),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
   }
 }
