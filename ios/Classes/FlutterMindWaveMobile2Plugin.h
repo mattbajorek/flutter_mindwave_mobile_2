@@ -1,4 +1,5 @@
 #import <Flutter/Flutter.h>
+#import <AlgoSdk/NskAlgoSdk.h>
 #import "MWMDevice.h"
 #import "MWMDelegate.h"
 
@@ -11,13 +12,17 @@
 @property FlutterEventSink sink;
 @end
 
+@interface NskAlgoSdkDelegateHandler : NSObject<NskAlgoSdkDelegate>
+-(id)initWithVariables: (FlutterMethodChannel*) connectionChannel
+                        attentionChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) attentionChannelStreamHandler
+                        bandPowerChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) bandPowerChannelStreamHandler
+                        eyeBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eyeBlinkChannelStreamHandler
+                        meditationChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) meditationChannelStreamHandler
+                        signalQualityChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) signalQualityChannelStreamHandler;
+@end
+
 @interface MWMDelegateHandler : NSObject<MWMDelegate>
--(id)initWithChannels: (FlutterMethodChannel*) connectionChannel
-                       eegSampleChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegSampleChannelStreamHandler
-                       eSenseChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eSenseChannelStreamHandler
-                       eegPowerLowBetaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerLowBetaChannelStreamHandler
-                       eegPowerDeltaChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegPowerDeltaChannelStreamHandler
-                       eegBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eegBlinkChannelStreamHandler
-                       mwmBaudRateChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) mwmBaudRateChannelStreamHandler
-                       exceptionMessageChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) exceptionMessageChannelStreamHandler;
+-(id)initWithVariables: (FlutterMethodChannel*) connectionChannel
+                        bleFlag: (BOOL) bleFlag
+                        nskAlgoSdk: (NskAlgoSdk*) nskAlgoSdk;
 @end

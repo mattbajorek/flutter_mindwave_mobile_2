@@ -19,35 +19,27 @@ class _MyAppState extends State<MyApp> {
   
   MWMConnectionState _connectingState = MWMConnectionState.disconnected;
   StreamSubscription _scanSubscription;
-  StreamSubscription<EEGSampleData> _eegSampleSubscription;
-  StreamSubscription<ESenseData> _eSenseSubscription;
-  StreamSubscription<EEGPowerLowBetaData> _eegPowerLowBetaSubscription;
-  StreamSubscription<EEGPowerDeltaData> _eegPowerDeltaSubscription;
-  StreamSubscription<EEGBlinkData> _eegBlinkSubscription;
-  StreamSubscription<MWMBaudRateData> _mwmBaudRateSubscription;
-  StreamSubscription<MWMExceptionMessage> _exceptionMessageSubscription;
+  StreamSubscription<int> _attentionSubscription;
+  StreamSubscription<BandPower> _bandPowerSubscription;
+  StreamSubscription<int> _eyeBlinkSubscription;
+  StreamSubscription<int> _meditationSubscription;
+  StreamSubscription<int> _signalQualitySubscription;
   
   _MyAppState() {
-    // _eegSampleSubscription = flutterMindWaveMobile2
-    //   .onEEGSampleData()
+    // _attentionSubscription = flutterMindWaveMobile2
+    //   .onAttention()
     //   .listen(handleData);
-    // _eSenseSubscription = flutterMindWaveMobile2
-    //   .onESenseData()
+    _bandPowerSubscription = flutterMindWaveMobile2
+      .onBandPower()
+      .listen(handleData);
+    // _eyeBlinkSubscription = flutterMindWaveMobile2
+    //   .onEyeBlink()
     //   .listen(handleData);
-    // _eegPowerLowBetaSubscription = flutterMindWaveMobile2
-    //   .onEEGPowerLowBetaData()
+    // _meditationSubscription = flutterMindWaveMobile2
+    //   .onMeditation()
     //   .listen(handleData);
-    // _eegPowerDeltaSubscription = flutterMindWaveMobile2
-    //   .onEEGPowerDeltaData()
-    //   .listen(handleData);
-    // _eegBlinkSubscription = flutterMindWaveMobile2
-    //   .onEEGBlinkData()
-    //   .listen(handleData);
-    // _mwmBaudRateSubscription = flutterMindWaveMobile2
-    //   .onMWMBaudRateData()
-    //   .listen(handleData);
-    // _exceptionMessageSubscription = flutterMindWaveMobile2
-    //   .onExceptionMessage()
+    // _signalQualitySubscription = flutterMindWaveMobile2
+    //   .onSignalQuality()
     //   .listen(handleData);
   }
 
@@ -156,17 +148,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   void handleData(data) {
-    print(data.toString());
+    print("RECEIVED DATA!!!!!!!!: " + data.toString());
   }
 
   void _disconnect() {
-    if (_eegSampleSubscription != null) _eegSampleSubscription.cancel();
-    if (_eSenseSubscription != null) _eSenseSubscription.cancel();
-    if (_eegPowerLowBetaSubscription != null) _eegPowerLowBetaSubscription.cancel();
-    if (_eegPowerDeltaSubscription != null) _eegPowerDeltaSubscription.cancel();
-    if (_eegBlinkSubscription != null) _eegBlinkSubscription.cancel();
-    if (_mwmBaudRateSubscription != null) _mwmBaudRateSubscription.cancel();
-    if (_exceptionMessageSubscription != null) _exceptionMessageSubscription.cancel();
+    if (_attentionSubscription != null) _attentionSubscription.cancel();
+    if (_bandPowerSubscription != null) _bandPowerSubscription.cancel();
+    if (_eyeBlinkSubscription != null) _eyeBlinkSubscription.cancel();
+    if (_meditationSubscription != null) _meditationSubscription.cancel();
+    if (_signalQualitySubscription != null) _signalQualitySubscription.cancel();
     setState(() {
       _connectingState = MWMConnectionState.disconnected;
     });

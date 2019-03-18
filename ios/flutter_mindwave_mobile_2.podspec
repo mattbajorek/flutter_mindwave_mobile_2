@@ -15,6 +15,7 @@ A new flutter plugin project.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.vendored_libraries = 'Static/*'
+  s.vendored_frameworks = 'Frameworks/*.framework'
   s.dependency 'Flutter'
 
   s.ios.deployment_target = '8.0'
