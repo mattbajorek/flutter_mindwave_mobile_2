@@ -235,13 +235,17 @@
 - (void)bpAlgoIndex:(NSNumber *)delta theta:(NSNumber *)theta alpha:(NSNumber *)alpha beta:(NSNumber *)beta gamma:(NSNumber *)gamma {
   NSLog(@"delta: %1.6f theta: %1.6f alpha: %1.6f beta: %1.6f gamma: %1.6f", [delta floatValue], [theta floatValue], [alpha floatValue], [beta floatValue], [gamma floatValue]);
   if(self._bandPowerChannelStreamHandler.sink != nil) {
-    self._bandPowerChannelStreamHandler.sink(@{
-                                               @"delta": delta,
-                                               @"theta": theta,
-                                               @"alpha": alpha,
-                                               @"beta": beta,
-                                               @"gamma": gamma,
-                                               });
+    NSDictionary* bandPowerData = @{
+                                    @"delta": delta,
+                                    @"theta": theta,
+                                    @"alpha": alpha,
+                                    @"beta": beta,
+                                    @"gamma": gamma,
+                                    };
+    NSError* err;
+    NSData* jsonData = [NSJSONSerialization dataWithJSONObject:bandPowerData options:0 error:&err];
+    NSString* jsonBandPowerDataString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    self._bandPowerChannelStreamHandler.sink(jsonBandPowerDataString);
   }
 }
 

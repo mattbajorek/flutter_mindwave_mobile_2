@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert' as JSON;
 
 import 'package:flutter/services.dart';
 
@@ -46,7 +47,15 @@ class FlutterMindWaveMobile2 {
   // Receives band power data
   Stream<BandPower> onBandPower() {
     return _bandPowerChannel.receiveBroadcastStream()
-      .map((data) => new BandPower(data['alpha'], data['delta'], data['theta'], data['beta'], data['gamma']));
+      .map((data) {
+        final json = JSON.jsonDecode(data);
+        final alpha = double.parse(json['alpha']);
+        final delta = double.parse(json['delta']);
+        final theta = double.parse(json['theta']);
+        final beta = double.parse(json['beta']);
+        final gamma = double.parse(json['gamma']);
+        return new BandPower(alpha, delta, theta, beta, gamma);
+      });
   }
 
   // Receives eye blink data

@@ -20,6 +20,14 @@ import com.neurosky.connection.DataType.MindDataType;
 import com.neurosky.connection.TgStreamHandler;
 import com.neurosky.connection.TgStreamReader;
 
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import io.flutter.plugin.common.EventChannel;
+import io.flutter.plugin.common.EventChannel.EventSink;
+import io.flutter.plugin.common.EventChannel.StreamHandler;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -35,8 +43,13 @@ public class FlutterMindWaveMobile2Plugin implements MethodCallHandler {
 
   private final Registrar registrar;
   private final MethodChannel connectionChannel;
-  private final BluetoothManager mBluetoothManager;
+  private final EventChannel attentionChannel;
+  private final EventChannel bandPowerChannel;
+  private final EventChannel eyeBlinkChannel;
+  private final EventChannel meditationChannel;
+  private final EventChannel signalQualityChannel;
 
+  private final BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
 
   private TgStreamReader mTgStreamReader;
@@ -99,17 +112,17 @@ public class FlutterMindWaveMobile2Plugin implements MethodCallHandler {
       // Feed the raw data to algo sdk here
       switch (datatype) {
         case MindDataType.CODE_ATTENTION:
-          Log.d(TAG, "CODE_ATTENTION:" + data);
+//          Log.d(TAG, "CODE_ATTENTION:" + data);
           short[] attValue = { (short) data };
           nskAlgoSdk.NskAlgoDataStream(NskAlgoDataType.NSK_ALGO_DATA_TYPE_ATT.value, attValue, 1);
           break;
         case MindDataType.CODE_MEDITATION:
-          Log.d(TAG, "CODE_MEDITATION:" + data);
+//          Log.d(TAG, "CODE_MEDITATION:" + data);
           short[] medValue = { (short) data };
           nskAlgoSdk.NskAlgoDataStream(NskAlgoDataType.NSK_ALGO_DATA_TYPE_MED.value, medValue, 1);
           break;
         case MindDataType.CODE_POOR_SIGNAL:
-          Log.d(TAG, "CODE_POOR_SIGNAL:" + data);
+//          Log.d(TAG, "CODE_POOR_SIGNAL:" + data);
           short[] psValue = { (short) data };
           nskAlgoSdk.NskAlgoDataStream(NskAlgoDataType.NSK_ALGO_DATA_TYPE_PQ.value, psValue, 1);
           break;
@@ -127,12 +140,88 @@ public class FlutterMindWaveMobile2Plugin implements MethodCallHandler {
 
   };
 
+  private EventSink attentionChannelSink;
+  private final StreamHandler attentionChannelHandler = new StreamHandler() {
+    @Override
+    public void onListen(Object o, EventSink eventSink) {
+      attentionChannelSink = eventSink;
+    }
+
+    @Override
+    public void onCancel(Object o) {
+      attentionChannelSink = null;
+    }
+  };
+
+  private EventSink bandPowerChannelSink;
+  private final StreamHandler bandPowerChannelHandler = new StreamHandler() {
+    @Override
+    public void onListen(Object o, EventSink eventSink) {
+      bandPowerChannelSink = eventSink;
+    }
+
+    @Override
+    public void onCancel(Object o) {
+      bandPowerChannelSink = null;
+    }
+  };
+
+  private EventSink eyeBlinkChannelSink;
+  private final StreamHandler eyeBlinkChannelHandler = new StreamHandler() {
+    @Override
+    public void onListen(Object o, EventSink eventSink) {
+      eyeBlinkChannelSink = eventSink;
+    }
+
+    @Override
+    public void onCancel(Object o) {
+      eyeBlinkChannelSink = null;
+    }
+  };
+
+  private EventSink meditationChannelSink;
+  private final StreamHandler meditationChannelHandler = new StreamHandler() {
+    @Override
+    public void onListen(Object o, EventSink eventSink) {
+      meditationChannelSink = eventSink;
+    }
+
+    @Override
+    public void onCancel(Object o) {
+      meditationChannelSink = null;
+    }
+  };
+
+  private EventSink signalQualityChannelSink;
+  private final StreamHandler signalQualityChannelHandler = new StreamHandler() {
+    @Override
+    public void onListen(Object o, EventSink eventSink) {
+      signalQualityChannelSink = eventSink;
+    }
+
+    @Override
+    public void onCancel(Object o) {
+      signalQualityChannelSink = null;
+    }
+  };
+
+
   FlutterMindWaveMobile2Plugin(Registrar registrar) {
     this.registrar = registrar;
     this.connectionChannel = new MethodChannel(registrar.messenger(), NAMESPACE + "/connection");
+    this.attentionChannel = new EventChannel(registrar.messenger(), NAMESPACE+"/attention");
+    this.bandPowerChannel = new EventChannel(registrar.messenger(), NAMESPACE+"/bandPower");
+    this.eyeBlinkChannel = new EventChannel(registrar.messenger(), NAMESPACE+"/eyeBlink");
+    this.meditationChannel = new EventChannel(registrar.messenger(), NAMESPACE+"/meditation");
+    this.signalQualityChannel = new EventChannel(registrar.messenger(), NAMESPACE+"/signalQuality");
     this.mBluetoothManager = (BluetoothManager) registrar.activity().getSystemService(Context.BLUETOOTH_SERVICE);
     this.mBluetoothAdapter = mBluetoothManager.getAdapter();
     connectionChannel.setMethodCallHandler(this);
+    attentionChannel.setStreamHandler(attentionChannelHandler);
+    bandPowerChannel.setStreamHandler(bandPowerChannelHandler);
+    eyeBlinkChannel.setStreamHandler(eyeBlinkChannelHandler);
+    meditationChannel.setStreamHandler(meditationChannelHandler);
+    signalQualityChannel.setStreamHandler(signalQualityChannelHandler);
     setupNskAlgoSk();
   }
 
@@ -206,36 +295,53 @@ public class FlutterMindWaveMobile2Plugin implements MethodCallHandler {
 
     nskAlgoSdk.setOnAttAlgoIndexListener(new NskAlgoSdk.OnAttAlgoIndexListener() {
       @Override
-      public void onAttAlgoIndex(int value) {
-        Log.d(TAG, "NskAlgoAttAlgoIndexListener: Attention: [" + value + "]");
+      public void onAttAlgoIndex(int attentionValue) {
+        if(attentionChannelSink != null) {
+          attentionChannelSink.success(attentionValue);
+        }
       }
     });
 
     nskAlgoSdk.setOnBPAlgoIndexListener(new NskAlgoSdk.OnBPAlgoIndexListener() {
       @Override
       public void onBPAlgoIndex(float delta, float theta, float alpha, float beta, float gamma) {
-        Log.d(TAG, "NskAlgoBPAlgoIndexListener: BP: D[" + delta + " dB] T[" + theta + " dB] A[" + alpha + " dB] B[" + beta + " dB] G[" + gamma + "]");
+        if(bandPowerChannelSink != null) {
+          Map<String,String> bandPowerValues = new HashMap<>();
+          bandPowerValues.put("delta", String.valueOf(delta));
+          bandPowerValues.put("theta", String.valueOf(theta));
+          bandPowerValues.put("alpha", String.valueOf(alpha));
+          bandPowerValues.put("beta", String.valueOf(beta));
+          bandPowerValues.put("gamma", String.valueOf(gamma));
+          JSONObject json = new JSONObject(bandPowerValues);
+          bandPowerChannelSink.success(json.toString());
+        }
       }
     });
 
     nskAlgoSdk.setOnEyeBlinkDetectionListener(new NskAlgoSdk.OnEyeBlinkDetectionListener() {
       @Override
-      public void onEyeBlinkDetect(int strength) {
-        Log.d(TAG, "NskAlgoEyeBlinkDetectionListener: Eye blink detected: [" + strength + "]");
+      public void onEyeBlinkDetect(int eyeBlinkStrengthValue) {
+        if(eyeBlinkChannelSink != null) {
+          eyeBlinkChannelSink.success(eyeBlinkStrengthValue);
+        }
       }
     });
 
     nskAlgoSdk.setOnMedAlgoIndexListener(new NskAlgoSdk.OnMedAlgoIndexListener() {
       @Override
-      public void onMedAlgoIndex(int value) {
-        Log.d(TAG, "NskAlgoMedAlgoIndexListener: Meditation:" + "[" + value + "]");
+      public void onMedAlgoIndex(int meditationValue) {
+        if(meditationChannelSink != null) {
+          meditationChannelSink.success(meditationValue);
+        }
       }
     });
 
     nskAlgoSdk.setOnSignalQualityListener(new NskAlgoSdk.OnSignalQualityListener() {
       @Override
-      public void onSignalQuality(int level) {
-        Log.d(TAG, "NskAlgoSignalQualityListener: level: [" + level + "]");
+      public void onSignalQuality(int signalQualityLevel) {
+        if(signalQualityChannelSink != null) {
+          signalQualityChannelSink.success(signalQualityLevel);
+        }
       }
     });
 

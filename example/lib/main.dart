@@ -19,29 +19,6 @@ class _MyAppState extends State<MyApp> {
   
   MWMConnectionState _connectingState = MWMConnectionState.disconnected;
   StreamSubscription _scanSubscription;
-  StreamSubscription<int> _attentionSubscription;
-  StreamSubscription<BandPower> _bandPowerSubscription;
-  StreamSubscription<int> _eyeBlinkSubscription;
-  StreamSubscription<int> _meditationSubscription;
-  StreamSubscription<int> _signalQualitySubscription;
-  
-  _MyAppState() {
-    // _attentionSubscription = flutterMindWaveMobile2
-    //   .onAttention()
-    //   .listen(handleData);
-    _bandPowerSubscription = flutterMindWaveMobile2
-      .onBandPower()
-      .listen(handleData);
-    // _eyeBlinkSubscription = flutterMindWaveMobile2
-    //   .onEyeBlink()
-    //   .listen(handleData);
-    // _meditationSubscription = flutterMindWaveMobile2
-    //   .onMeditation()
-    //   .listen(handleData);
-    // _signalQualitySubscription = flutterMindWaveMobile2
-    //   .onSignalQuality()
-    //   .listen(handleData);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +51,21 @@ class _MyAppState extends State<MyApp> {
       }
       break;
     }
+    var columnChildren = <Widget>[
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          RaisedButton(
+            onPressed: handleButton,
+            child: Text(connectionStatusText),
+          ),
+          Image.asset(connectionImageUrl, width: 100.0, height: 100.0),
+        ],
+      ),
+    ];
+    if (_connectingState ==MWMConnectionState.connected) {
+      columnChildren.add(_dataView());
+    }
     return MaterialApp(
       navigatorKey: navigatorKey,
       home: Scaffold(
@@ -82,18 +74,7 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Center(
           child: Column(
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  RaisedButton(
-                    onPressed: handleButton,
-                    child: Text(connectionStatusText),
-                  ),
-                  Image.asset(connectionImageUrl, width: 100.0, height: 100.0),
-                ],
-              ),
-            ],
+            children: columnChildren,
           )
         ),
       ),
@@ -147,16 +128,7 @@ class _MyAppState extends State<MyApp> {
       });
   }
 
-  void handleData(data) {
-    print("RECEIVED DATA!!!!!!!!: " + data.toString());
-  }
-
   void _disconnect() {
-    if (_attentionSubscription != null) _attentionSubscription.cancel();
-    if (_bandPowerSubscription != null) _bandPowerSubscription.cancel();
-    if (_eyeBlinkSubscription != null) _eyeBlinkSubscription.cancel();
-    if (_meditationSubscription != null) _meditationSubscription.cancel();
-    if (_signalQualitySubscription != null) _signalQualitySubscription.cancel();
     setState(() {
       _connectingState = MWMConnectionState.disconnected;
     });
@@ -185,5 +157,75 @@ class _MyAppState extends State<MyApp> {
         ],
       ),
     );
+  }
+
+  Widget _dataView() {
+    return Expanded(
+      child: Column(
+        children: <Widget>[
+          _header("Attention (Att)"),
+          _dataStreamBuilder("Attention", flutterMindWaveMobile2.onAttention()),
+          Spacer(),
+          _header("Band Power (BP)"),
+          _bandPowerStreamBuilder(),
+          Spacer(),
+          _header("Eye Blink (Blink)"),
+          _dataStreamBuilder("Eye Blink", flutterMindWaveMobile2.onEyeBlink()),
+          Spacer(),
+          _header("Meditation (Med)"),
+          _dataStreamBuilder("Meditation", flutterMindWaveMobile2.onMeditation()),
+          Spacer(),
+        ],
+      ),
+    );
+  }
+
+  Widget _dataStreamBuilder(String title, Stream stream) {
+    return StreamBuilder(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return _value("$title: ${snapshot.data.toString()}");
+        }
+        return _value("$title: N/A");
+      },
+    );
+  }
+  
+  Widget _bandPowerStreamBuilder() {
+    return StreamBuilder(
+      stream: flutterMindWaveMobile2.onBandPower(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          var bandPower = snapshot.data as BandPower;
+          return Column(
+            children: <Widget>[
+              _value("alpha: ${bandPower.alpha.toString()} dB"),
+              _value("delta: ${bandPower.delta.toString()} dB"),
+              _value("theta: ${bandPower.theta.toString()} dB"),
+              _value("beta: ${bandPower.beta.toString()} dB"),
+              _value("gamma: ${bandPower.gamma.toString()} dB"),
+            ],
+          );
+        }
+        return Column(
+          children: <Widget>[
+            _value("alpha: N/A"),
+            _value("delta: N/A"),
+            _value("theta: N/A"),
+            _value("beta: N/A"),
+            _value("gamma: N/A"),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _header(String text) {
+    return Text(text, style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold));
+  }
+
+  Widget _value(String text) {
+    return Text(text, style: TextStyle(fontSize: 20.0));
   }
 }
