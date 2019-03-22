@@ -24,5 +24,10 @@
 @interface MWMDelegateHandler : NSObject<MWMDelegate>
 -(id)initWithVariables: (FlutterMethodChannel*) connectionChannel
                         bleFlag: (BOOL) bleFlag
-                        nskAlgoSdk: (NskAlgoSdk*) nskAlgoSdk;
+                        hasLicenseKey: (BOOL) hasLicenseKey
+                        nskAlgoSdk: (NskAlgoSdk*) nskAlgoSdk
+                        attentionChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) attentionChannelStreamHandler
+                        eyeBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eyeBlinkChannelStreamHandler
+                        meditationChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) meditationChannelStreamHandler
+                        signalQualityChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) signalQualityChannelStreamHandler;
 @end

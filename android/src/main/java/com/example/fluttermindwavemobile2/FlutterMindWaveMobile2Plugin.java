@@ -62,35 +62,19 @@ public class FlutterMindWaveMobile2Plugin implements MethodCallHandler {
     @Override
     public void onStatesChanged(int connectionStates) {
       switch (connectionStates) {
-        case ConnectionStates.STATE_CONNECTING:
-          Log.d(TAG, "connectionStates change to: STATE_CONNECTING");
-          break;
         case ConnectionStates.STATE_CONNECTED:
-          Log.d(TAG, "connectionStates change to: STATE_CONNECTED");
           mTgStreamReader.start();
           connectionChannel.invokeMethod("connected", null);
           break;
-        case ConnectionStates.STATE_WORKING:
-          Log.d(TAG, "connectionStates change to: STATE_WORKING");
-          break;
-        case ConnectionStates.STATE_GET_DATA_TIME_OUT:
-          Log.d(TAG, "connectionStates change to: STATE_GET_DATA_TIME_OUT");
-          disconnect();
-          break;
-        case ConnectionStates.STATE_STOPPED:
-          Log.d(TAG, "connectionStates change to: STATE_STOPPED");
-          break;
         case ConnectionStates.STATE_DISCONNECTED:
-          Log.d(TAG, "connectionStates change to: STATE_DISCONNECTED");
           connectionChannel.invokeMethod("disconnected", null);
           break;
+        case ConnectionStates.STATE_GET_DATA_TIME_OUT:
         case ConnectionStates.STATE_ERROR:
-          Log.d(TAG, "connectionStates change to: STATE_ERROR");
+        case ConnectionStates.STATE_FAILED:
           disconnect();
           break;
-        case ConnectionStates.STATE_FAILED:
-          Log.d(TAG, "connectionStates change to: STATE_FAILED");
-          disconnect();
+        default:
           break;
       }
     }
@@ -105,6 +89,7 @@ public class FlutterMindWaveMobile2Plugin implements MethodCallHandler {
     @Override
     public void onChecksumFail(byte[] payload, int length, int checksum) {
       // Handle the bad packets here.
+      Log.e(TAG, "onChecksumFail: " );
     }
 
     @Override
@@ -112,17 +97,14 @@ public class FlutterMindWaveMobile2Plugin implements MethodCallHandler {
       // Feed the raw data to algo sdk here
       switch (datatype) {
         case MindDataType.CODE_ATTENTION:
-//          Log.d(TAG, "CODE_ATTENTION:" + data);
           short[] attValue = { (short) data };
           nskAlgoSdk.NskAlgoDataStream(NskAlgoDataType.NSK_ALGO_DATA_TYPE_ATT.value, attValue, 1);
           break;
         case MindDataType.CODE_MEDITATION:
-//          Log.d(TAG, "CODE_MEDITATION:" + data);
           short[] medValue = { (short) data };
           nskAlgoSdk.NskAlgoDataStream(NskAlgoDataType.NSK_ALGO_DATA_TYPE_MED.value, medValue, 1);
           break;
         case MindDataType.CODE_POOR_SIGNAL:
-//          Log.d(TAG, "CODE_POOR_SIGNAL:" + data);
           short[] psValue = { (short) data };
           nskAlgoSdk.NskAlgoDataStream(NskAlgoDataType.NSK_ALGO_DATA_TYPE_PQ.value, psValue, 1);
           break;
@@ -236,7 +218,7 @@ public class FlutterMindWaveMobile2Plugin implements MethodCallHandler {
       switch(call.method)
       {
         case "connect":
-          String deviceId = (String)call.arguments;
+          String deviceId = call.argument("deviceId");
           connect(deviceId);
           result.success(null);
           break;
@@ -253,17 +235,14 @@ public class FlutterMindWaveMobile2Plugin implements MethodCallHandler {
   }
 
   private void connect(String deviceId) {
-    Log.d(TAG, "CONNECTING TO " + deviceId);
     BluetoothDevice remoteDevice = mBluetoothAdapter.getRemoteDevice(deviceId);
     if (mTgStreamReader == null) {
       mTgStreamReader = new TgStreamReader(remoteDevice, callback);
-      mTgStreamReader.startLog();
       mTgStreamReader.connect();
     }
   }
 
   private void disconnect() {
-    Log.d(TAG, "DISCONNECTING ");
     if (mTgStreamReader != null && mTgStreamReader.isBTConnected()) {
       mTgStreamReader.stop();
       mTgStreamReader.close();

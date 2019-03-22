@@ -11,7 +11,8 @@
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* meditationChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* signalQualityChannelStreamHandler;
 @property(nonatomic) BOOL bleFlag;
-@property(nonatomic, retain) NskAlgoSdk *nskAlgoSdk;
+@property(nonatomic) BOOL hasLicenseKey;
+@property(nonatomic, retain) NskAlgoSdk* nskAlgoSdk;
 @property(nonatomic, retain) MWMDelegateHandler* mwmDelegateHandler;
 @property(nonatomic, retain) MWMDevice *mwmDevice;
 @end
@@ -66,7 +67,7 @@
   [signalQualityChannel setStreamHandler:signalQualityChannelStreamHandler];
   
   // Set up Algo SDK
-  NskAlgoSdk *nskAlgoSdk = [NskAlgoSdk sharedInstance];
+  NskAlgoSdk* nskAlgoSdk = [NskAlgoSdk sharedInstance];
   instance.nskAlgoSdk = nskAlgoSdk;
   NskAlgoSdkDelegateHandler* nskAlgoSdkDelegateHandler = [[NskAlgoSdkDelegateHandler alloc]
                                                           initWithVariables: connectionChannel
@@ -76,15 +77,18 @@
                                                           meditationChannelStreamHandler: meditationChannelStreamHandler
                                                           signalQualityChannelStreamHandler: signalQualityChannelStreamHandler];
   [nskAlgoSdk setDelegate:nskAlgoSdkDelegateHandler];
-  [nskAlgoSdk setAlgorithmTypes: NskAlgoDataTypeAtt|NskAlgoEegTypeMed|NskAlgoEegTypeBP|NskAlgoEegTypeBlink licenseKey:(char*)"LICENSE_KEY_CHAIN"];
-  [nskAlgoSdk startProcess];
     
   // Set up MWMdevice
   MWMDevice* mwmDevice = [MWMDevice sharedInstance];
   MWMDelegateHandler* mwmDelegateHandler = [[MWMDelegateHandler alloc]
                                             initWithVariables: connectionChannel
                                             bleFlag: instance.bleFlag
-                                            nskAlgoSdk: nskAlgoSdk];
+                                            hasLicenseKey: instance.hasLicenseKey
+                                            nskAlgoSdk: nskAlgoSdk
+                                            attentionChannelStreamHandler: attentionChannelStreamHandler
+                                            eyeBlinkChannelStreamHandler: eyeBlinkChannelStreamHandler
+                                            meditationChannelStreamHandler: meditationChannelStreamHandler
+                                            signalQualityChannelStreamHandler: signalQualityChannelStreamHandler];
   instance.mwmDelegateHandler = mwmDelegateHandler;
   [mwmDevice setDelegate:mwmDelegateHandler];
   instance.mwmDevice = mwmDevice;
@@ -96,18 +100,25 @@
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
   @try {
     if ([@"connect" isEqualToString:call.method]) {
-        NSLog(@"MWM connecting to device");
-        NSString *deviceID = [call arguments];
-        if ([deviceID containsString:@":"]) {
-          _bleFlag = NO;
-        }
-        else{
-          _bleFlag = YES;
-        }
-        [_mwmDevice connectDevice:deviceID];
-        result(nil);
+      NSDictionary* dict = [call arguments];
+      NSString* deviceId = [dict objectForKey:@"deviceId"];
+      if ([deviceId containsString:@":"]) {
+        _bleFlag = NO;
+      }
+      else{
+        _bleFlag = YES;
+      }
+      // If license key then set algo
+      NSString* licenseKey = [dict objectForKey:@"licenseKey"];
+      if (![licenseKey isEqual:[NSNull null]]) {
+        _hasLicenseKey = YES;
+        const char* licenseKeyChars = [licenseKey UTF8String];
+        [_nskAlgoSdk setAlgorithmTypes: NskAlgoDataTypeAtt|NskAlgoEegTypeMed|NskAlgoEegTypeBP|NskAlgoEegTypeBlink licenseKey: (char*)licenseKeyChars];
+        [_nskAlgoSdk startProcess];
+      }
+      [_mwmDevice connectDevice:deviceId];
+      result(nil);
     } else if ([@"disconnect" isEqualToString:call.method]) {
-      NSLog(@"MWM disconnecting to device");
       [_mwmDevice disconnectDevice];
       result(nil);
     } else {
@@ -226,14 +237,12 @@
 }
 
 - (void)attAlgoIndex:(NSNumber *)att_index {
-  NSLog(@"Attention: %f", [att_index floatValue]);
   if(self._attentionChannelStreamHandler.sink != nil) {
     self._attentionChannelStreamHandler.sink(att_index);
   }
 }
 
 - (void)bpAlgoIndex:(NSNumber *)delta theta:(NSNumber *)theta alpha:(NSNumber *)alpha beta:(NSNumber *)beta gamma:(NSNumber *)gamma {
-  NSLog(@"delta: %1.6f theta: %1.6f alpha: %1.6f beta: %1.6f gamma: %1.6f", [delta floatValue], [theta floatValue], [alpha floatValue], [beta floatValue], [gamma floatValue]);
   if(self._bandPowerChannelStreamHandler.sink != nil) {
     NSDictionary* bandPowerData = @{
                                     @"delta": delta,
@@ -250,14 +259,12 @@
 }
 
 - (void)eyeBlinkDetect:(NSNumber *)strength {
-  NSLog(@"Eye blink detected: %d", [strength intValue]);
   if(self._eyeBlinkChannelStreamHandler.sink != nil) {
     self._eyeBlinkChannelStreamHandler.sink(strength);
   }
 }
 
 - (void)medAlgoIndex:(NSNumber *)med_index {
-  NSLog(@"Meditation: %f", [med_index floatValue]);
   if(self._meditationChannelStreamHandler.sink != nil) {
     self._meditationChannelStreamHandler.sink(med_index);
   }
@@ -290,19 +297,34 @@
 @interface MWMDelegateHandler ()
 @property(nonatomic, retain) FlutterMethodChannel* _connectionChannel;
 @property(nonatomic) BOOL _bleFlag;
+@property(nonatomic) BOOL _hasLicenseKey;
 @property(nonatomic, retain) NskAlgoSdk* _nskAlgoSdk;
+@property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _attentionChannelStreamHandler;
+@property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _eyeBlinkChannelStreamHandler;
+@property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _meditationChannelStreamHandler;
+@property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _signalQualityChannelStreamHandler;
 @end
 
 @implementation MWMDelegateHandler
 
 -(id)initWithVariables: (FlutterMethodChannel*) connectionChannel
                         bleFlag: (BOOL) bleFlag
-                        nskAlgoSdk: (NskAlgoSdk*) nskAlgoSdk {
+                        hasLicenseKey: (BOOL) hasLicenseKey
+                        nskAlgoSdk: (NskAlgoSdk*) nskAlgoSdk
+                        attentionChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) attentionChannelStreamHandler
+                        eyeBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eyeBlinkChannelStreamHandler
+                        meditationChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) meditationChannelStreamHandler
+                        signalQualityChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) signalQualityChannelStreamHandler {
   self = [super init];
   if (self) {
     self._connectionChannel = connectionChannel;
     self._bleFlag = bleFlag;
+    self._hasLicenseKey = hasLicenseKey;
     self._nskAlgoSdk = nskAlgoSdk;
+    self._attentionChannelStreamHandler = attentionChannelStreamHandler;
+    self._eyeBlinkChannelStreamHandler = eyeBlinkChannelStreamHandler;
+    self._meditationChannelStreamHandler = meditationChannelStreamHandler;
+    self._signalQualityChannelStreamHandler = signalQualityChannelStreamHandler;
   }
   return self;
 }
@@ -319,9 +341,9 @@
 -(void)eegSample:(int) sample {
   int16_t eeg_data[1];
   eeg_data[0] = (int16_t)sample;
-  //Feed-in EEG data to the EEG Algo SDK
+  // Feed-in EEG data to the EEG Algo SDK
   [self._nskAlgoSdk dataStream:NskAlgoDataTypeEEG data:eeg_data length:1];
-  //MWM plus case:  BLE sample rate 256;  so double it!
+  // MWM plus case:  BLE sample rate 256;  so double it!
   if (self._bleFlag) {
     [self._nskAlgoSdk dataStream:NskAlgoDataTypeEEG data:eeg_data length:1];
   }
@@ -329,23 +351,40 @@
 
 // Emotional Sense call back
 -(void)eSense:(int)poorSignal Attention:(int)attention Meditation:(int)meditation {
-  int16_t poor_signal[1];
-  poor_signal[0] = (int16_t)poorSignal;
-  //Feed-in EEG data to the EEG Algo SDK
-  [self._nskAlgoSdk dataStream:NskAlgoDataTypePQ data:poor_signal length:1];
-  NSLog(@"Poor Signal: %d", poorSignal);
-  
-  int16_t attention_input[1];
-  attention_input[0] = (int16_t)attention;
-  //Feed-in EEG data to the EEG Algo SDK
-  [self._nskAlgoSdk dataStream:NskAlgoDataTypeAtt data:attention_input length:1];
-  NSLog(@"Attention: %d", attention);
-  
-  int16_t meditation_input[1];
-  meditation_input[0] = (int16_t)meditation;
-  //Feed-in EEG data to the EEG Algo SDK
-  [self._nskAlgoSdk dataStream:NskAlgoDataTypeMed data:meditation_input length:1];
-  NSLog(@"Meditation: %d", meditation);
+  if (self._hasLicenseKey) {
+    int16_t poor_signal[1];
+    poor_signal[0] = (int16_t)poorSignal;
+    //Feed-in EEG data to the EEG Algo SDK
+    [self._nskAlgoSdk dataStream:NskAlgoDataTypePQ data:poor_signal length:1];
+    
+    int16_t attention_input[1];
+    attention_input[0] = (int16_t)attention;
+    //Feed-in EEG data to the EEG Algo SDK
+    [self._nskAlgoSdk dataStream:NskAlgoDataTypeAtt data:attention_input length:1];
+    
+    int16_t meditation_input[1];
+    meditation_input[0] = (int16_t)meditation;
+    //Feed-in EEG data to the EEG Algo SDK
+    [self._nskAlgoSdk dataStream:NskAlgoDataTypeMed data:meditation_input length:1];
+  } else {
+    if(self._meditationChannelStreamHandler.sink != nil) {
+      self._meditationChannelStreamHandler.sink([NSNumber numberWithInt:poorSignal]);
+    }
+    if(self._attentionChannelStreamHandler.sink != nil) {
+      self._attentionChannelStreamHandler.sink([NSNumber numberWithInt:attention]);
+    }
+    if(self._meditationChannelStreamHandler.sink != nil) {
+      self._meditationChannelStreamHandler.sink([NSNumber numberWithInt:meditation]);
+    }
+  }
+}
+
+-(void)eegBlink:(int) blinkValue {
+  if (!self._hasLicenseKey) {
+    if(self._eyeBlinkChannelStreamHandler.sink != nil) {
+      self._eyeBlinkChannelStreamHandler.sink([NSNumber numberWithInt:blinkValue]);
+    }
+  }
 }
 
 @end

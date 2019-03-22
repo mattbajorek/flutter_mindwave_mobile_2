@@ -94,7 +94,6 @@ class _MyAppState extends State<MyApp> {
         if (name == 'MindWave Mobile') {
           found = true;
           _scanSubscription.cancel();
-          print("FOUND MINDWAVE MOBILE!!!");
           _connect(scanResult.device);
         }
       }, onError: (error) {

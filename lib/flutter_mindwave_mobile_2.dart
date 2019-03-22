@@ -19,9 +19,9 @@ class FlutterMindWaveMobile2 {
     _connectionChannel.setMethodCallHandler(handleConnection);
   }
 
-  Stream<MWMConnectionState> connect(String deviceID) {
+  Stream<MWMConnectionState> connect(String deviceId, [String licenseKey]) {
     _mwmConnectionStreamController.add(MWMConnectionState.connecting);
-    _connectionChannel.invokeMethod('connect', deviceID);
+    _connectionChannel.invokeMethod('connect', {'deviceId': deviceId, 'licenseKey': licenseKey});
     return _mwmConnectionStreamController.stream;
   }
 

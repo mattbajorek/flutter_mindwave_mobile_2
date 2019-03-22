@@ -19,4 +19,6 @@
 
 -(void)eSense:(int)poorSignal Attention:(int)attention Meditation:(int)meditation;
 
+-(void)eegBlink:(int) blinkValue;
+
 @end
