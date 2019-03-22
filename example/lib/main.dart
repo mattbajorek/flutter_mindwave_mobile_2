@@ -16,7 +16,7 @@ class _MyAppState extends State<MyApp> {
 
   FlutterBlue flutterBlue = FlutterBlue.instance;
   FlutterMindWaveMobile2 flutterMindWaveMobile2 = FlutterMindWaveMobile2();
-  
+
   MWMConnectionState _connectingState = MWMConnectionState.disconnected;
   StreamSubscription _scanSubscription;
 
@@ -25,31 +25,35 @@ class _MyAppState extends State<MyApp> {
     String connectionStatusText;
     String connectionImageUrl;
     Function handleButton = _scan;
-    switch(_connectingState) {
-      case MWMConnectionState.scanning: {
-        connectionStatusText = 'Scanning...';
-        connectionImageUrl = 'images/connecting1_v1.png';
-        handleButton = null;
-      }
-      break;
-      case MWMConnectionState.connecting: {
-        connectionStatusText = 'Connecting...';
-        connectionImageUrl = 'images/connecting2_v1.png';
-        handleButton = null;
-      }
-      break;
-      case MWMConnectionState.connected: {
-        connectionStatusText = 'Disconnect';
-        connectionImageUrl = 'images/connected_v1.png';
-        handleButton = _disconnectWithMessage;
-      }
-      break;
-      case MWMConnectionState.disconnected: {
-        connectionStatusText = 'Connect';
-        connectionImageUrl = 'images/nosignal_v1.png';
-        handleButton = _scan;
-      }
-      break;
+    switch (_connectingState) {
+      case MWMConnectionState.scanning:
+        {
+          connectionStatusText = 'Scanning...';
+          connectionImageUrl = 'images/connecting1_v1.png';
+          handleButton = null;
+        }
+        break;
+      case MWMConnectionState.connecting:
+        {
+          connectionStatusText = 'Connecting...';
+          connectionImageUrl = 'images/connecting2_v1.png';
+          handleButton = null;
+        }
+        break;
+      case MWMConnectionState.connected:
+        {
+          connectionStatusText = 'Disconnect';
+          connectionImageUrl = 'images/connected_v1.png';
+          handleButton = _disconnectWithMessage;
+        }
+        break;
+      case MWMConnectionState.disconnected:
+        {
+          connectionStatusText = 'Connect';
+          connectionImageUrl = 'images/nosignal_v1.png';
+          handleButton = _scan;
+        }
+        break;
     }
     var columnChildren = <Widget>[
       Row(
@@ -63,7 +67,7 @@ class _MyAppState extends State<MyApp> {
         ],
       ),
     ];
-    if (_connectingState ==MWMConnectionState.connected) {
+    if (_connectingState == MWMConnectionState.connected) {
       columnChildren.add(_dataView());
     }
     return MaterialApp(
@@ -73,10 +77,9 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Flutter MindWave Mobile 2 Plugin Example App'),
         ),
         body: Center(
-          child: Column(
-            children: columnChildren,
-          )
-        ),
+            child: Column(
+          children: columnChildren,
+        )),
       ),
     );
   }
@@ -87,19 +90,17 @@ class _MyAppState extends State<MyApp> {
       _connectingState = MWMConnectionState.scanning;
     });
     var found = false;
-    _scanSubscription = flutterBlue
-      .scan()
-      .listen((ScanResult scanResult) {
-        var name = scanResult.device.name;
-        if (name == 'MindWave Mobile') {
-          found = true;
-          _scanSubscription.cancel();
-          _connect(scanResult.device);
-        }
-      }, onError: (error) {
-        _disconnect();
-        _showDialog("Is bluetooth on?");
-      }, cancelOnError: true);
+    _scanSubscription = flutterBlue.scan().listen((ScanResult scanResult) {
+      var name = scanResult.device.name;
+      if (name == 'MindWave Mobile') {
+        found = true;
+        _scanSubscription.cancel();
+        _connect(scanResult.device);
+      }
+    }, onError: (error) {
+      _disconnect();
+      _showDialog("Is bluetooth on?");
+    }, cancelOnError: true);
     // Cancel scan after 5 sec
     Future.delayed(const Duration(milliseconds: 5000), () {
       if (!found) {
@@ -115,16 +116,16 @@ class _MyAppState extends State<MyApp> {
       _connectingState = MWMConnectionState.connecting;
     });
     flutterMindWaveMobile2
-      .connect(device.id.toString())
-      .listen((MWMConnectionState connectionState) {
-        if (connectionState == MWMConnectionState.connected) {
-          setState(() {
-            _connectingState = connectionState;
-          });
-        } else if (connectionState == MWMConnectionState.disconnected) {
-          _disconnect();
-        }
-      });
+        .connect(device.id.toString())
+        .listen((MWMConnectionState connectionState) {
+      if (connectionState == MWMConnectionState.connected) {
+        setState(() {
+          _connectingState = connectionState;
+        });
+      } else if (connectionState == MWMConnectionState.disconnected) {
+        _disconnect();
+      }
+    });
   }
 
   void _disconnect() {
@@ -132,6 +133,7 @@ class _MyAppState extends State<MyApp> {
       _connectingState = MWMConnectionState.disconnected;
     });
   }
+
   void _disconnectWithMessage() {
     _disconnect();
     flutterMindWaveMobile2.disconnect();
@@ -142,19 +144,19 @@ class _MyAppState extends State<MyApp> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text("Error"),
-        content: Text(message),
-        actions: <Widget>[
-          FlatButton(
-            child: Text('Cancel'),
-            onPressed: () => Navigator.pop(context),
+            title: Text("Error"),
+            content: Text(message),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Cancel'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              FlatButton(
+                child: Text('Ok'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
           ),
-          FlatButton(
-            child: Text('Ok'),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
     );
   }
 
@@ -172,7 +174,8 @@ class _MyAppState extends State<MyApp> {
           _dataStreamBuilder("Eye Blink", flutterMindWaveMobile2.onEyeBlink()),
           Spacer(),
           _header("Meditation (Med)"),
-          _dataStreamBuilder("Meditation", flutterMindWaveMobile2.onMeditation()),
+          _dataStreamBuilder(
+              "Meditation", flutterMindWaveMobile2.onMeditation()),
           Spacer(),
         ],
       ),
@@ -190,7 +193,7 @@ class _MyAppState extends State<MyApp> {
       },
     );
   }
-  
+
   Widget _bandPowerStreamBuilder() {
     return StreamBuilder(
       stream: flutterMindWaveMobile2.onBandPower(),
@@ -221,7 +224,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _header(String text) {
-    return Text(text, style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold));
+    return Text(text,
+        style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold));
   }
 
   Widget _value(String text) {
