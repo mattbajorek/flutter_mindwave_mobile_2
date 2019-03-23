@@ -4,7 +4,7 @@
 
 ## Introduction
 
-FlutterMindWaveMobile2 is a plugin to connect and receive data from the Neurosky MindWave Mobile 2 using [Flutter](http://www.flutter.io), a new mobile SDK to help developers build modern apps for iOS and Android.
+FlutterMindWaveMobile2 is a plugin to connect and receive data from the [Neurosky MindWave Mobile 2](https://store.neurosky.com/pages/mindwave) using [Flutter](http://www.flutter.io), a new mobile SDK to help developers build modern apps for iOS and Android.
 
 ## Cross-Platform
 
@@ -215,4 +215,4 @@ var signalQualitySubscription = flutterMindWaveMobile2
 This plugin is heavily inspired by [react-native-mindwave-mobile](https://www.npmjs.com/package/react-native-mindwave-mobile).
 
 ## Affiliation
-This plugin is not affiliated or sponsored by Neurosky in any way.
+This plugin is not affiliated or sponsored by [Neurosky](http://neurosky.com/) in any way.
