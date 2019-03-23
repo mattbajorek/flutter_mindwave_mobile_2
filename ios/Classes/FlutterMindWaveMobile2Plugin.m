@@ -5,6 +5,7 @@
 @interface FlutterMindWaveMobile2Plugin ()
 @property(nonatomic, retain) NSObject<FlutterPluginRegistrar> *registrar;
 @property(nonatomic, retain) FlutterMethodChannel* connectionChannel;
+@property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* algoStateAndReasonChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* attentionChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* bandPowerChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* eyeBlinkChannelStreamHandler;
@@ -25,6 +26,14 @@
                                              binaryMessenger:[registrar messenger]];
   FlutterMindWaveMobile2Plugin* instance = [[FlutterMindWaveMobile2Plugin alloc] init];
   instance.connectionChannel = connectionChannel;
+  
+  // Set up algo state channel
+  FlutterEventChannel* algoStateAndReasonChannel = [FlutterEventChannel
+                                           eventChannelWithName:NAMESPACE @"/algoStateAndReason"
+                                           binaryMessenger:[registrar messenger]];
+  FlutterMindWaveMobile2StreamHandler* algoStateAndReasonChannelStreamHandler = [[FlutterMindWaveMobile2StreamHandler alloc] init];
+  instance.algoStateAndReasonChannelStreamHandler = algoStateAndReasonChannelStreamHandler;
+  [algoStateAndReasonChannel setStreamHandler:algoStateAndReasonChannelStreamHandler];
     
   // Set up attention channel
   FlutterEventChannel* attentionChannel = [FlutterEventChannel
@@ -71,6 +80,7 @@
   instance.nskAlgoSdk = nskAlgoSdk;
   NskAlgoSdkDelegateHandler* nskAlgoSdkDelegateHandler = [[NskAlgoSdkDelegateHandler alloc]
                                                           initWithVariables: connectionChannel
+                                                          algoStateAndReasonChannelStreamHandler: algoStateAndReasonChannelStreamHandler
                                                           attentionChannelStreamHandler: attentionChannelStreamHandler
                                                           bandPowerChannelStreamHandler: bandPowerChannelStreamHandler
                                                           eyeBlinkChannelStreamHandler: eyeBlinkChannelStreamHandler
@@ -149,6 +159,7 @@
 
 @interface NskAlgoSdkDelegateHandler ()
 @property(nonatomic, retain) FlutterMethodChannel* _connectionChannel;
+@property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _algoStateAndReasonChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _attentionChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _bandPowerChannelStreamHandler;
 @property(nonatomic, retain) FlutterMindWaveMobile2StreamHandler* _eyeBlinkChannelStreamHandler;
@@ -159,6 +170,7 @@
 @implementation NskAlgoSdkDelegateHandler
 
 -(id)initWithVariables: (FlutterMethodChannel*) connectionChannel
+                        algoStateAndReasonChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) algoStateAndReasonChannelStreamHandler
                         attentionChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) attentionChannelStreamHandler
                         bandPowerChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) bandPowerChannelStreamHandler
                         eyeBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eyeBlinkChannelStreamHandler
@@ -167,6 +179,7 @@
   self = [super init];
   if (self) {
     self._connectionChannel = connectionChannel;
+    self._algoStateAndReasonChannelStreamHandler = algoStateAndReasonChannelStreamHandler;
     self._attentionChannelStreamHandler = attentionChannelStreamHandler;
     self._bandPowerChannelStreamHandler = bandPowerChannelStreamHandler;
     self._eyeBlinkChannelStreamHandler = eyeBlinkChannelStreamHandler;
@@ -177,63 +190,64 @@
 }
 
 - (void)stateChanged:(NskAlgoState)state reason:(NskAlgoReason)reason {
-  NSMutableString* stateStr = [[NSMutableString alloc] init];
-  [stateStr setString:@""];
-  [stateStr appendString:@"SDK State: "];
+  NSString* stateStr;
   switch (state) {
-    case NskAlgoStateCollectingBaselineData:
-      [stateStr appendString:@"Collecting baseline"];
+    case NskAlgoStateInited:
+      stateStr = @"Inited";
       break;
     case NskAlgoStateAnalysingBulkData:
-      [stateStr appendString:@"Analysing Bulk Data"];
+      stateStr = @"Analysing Bulk Data";
       break;
-    case NskAlgoStateInited:
-      [stateStr appendString:@"Inited"];
+    case NskAlgoStateCollectingBaselineData:
+      stateStr = @"Collecting Baseline";
       break;
     case NskAlgoStatePause:
-      [stateStr appendString:@"Pause"];
+      stateStr = @"Pause";
       break;
     case NskAlgoStateRunning:
-      [stateStr appendString:@"Running"];
+      stateStr = @"Running";
       break;
     case NskAlgoStateStop:
-      [stateStr appendString:@"Stop"];
+      stateStr = @"Stop";
       break;
     case NskAlgoStateUninited:
-      [stateStr appendString:@"Uninit"];
+      stateStr = @"Uninit";
       break;
   }
+  NSString* reasonStr;
   switch (reason) {
     case NskAlgoReasonBaselineExpired:
-      [stateStr appendString:@" | Baseline expired"];
-      break;
-    case NskAlgoReasonConfigChanged:
-      [stateStr appendString:@" | Config changed"];
-      break;
-    case NskAlgoReasonNoBaseline:
-      [stateStr appendString:@" | No Baseline"];
-      break;
-    case NskAlgoReasonSignalQuality:
-      [stateStr appendString:@" | Signal quality"];
-      break;
-    case NskAlgoReasonUserProfileChanged:
-      [stateStr appendString:@" | User profile changed"];
+      reasonStr = @"Baseline expired";
       break;
     case NskAlgoReasonUserTrigger:
-      [stateStr appendString:@" | By user"];
+      reasonStr = @"By user";
       break;
-    case NskAlgoReasonExpired:
-      [stateStr appendString:@" | NskAlgoReasonExpired"];
+    case NskAlgoReasonConfigChanged:
+      reasonStr = @"Config changed";
       break;
-    case NskAlgoReasonInternetError:
-      [stateStr appendString:@" | NskAlgoReasonInternetError"];
+    case NskAlgoReasonNoBaseline:
+      reasonStr = @"No Baseline";
       break;
-    case NskAlgoReasonKeyError:
-      [stateStr appendString:@" | NskAlgoReasonKeyError"];
+    case NskAlgoReasonSignalQuality:
+      reasonStr = @"Signal quality";
+      break;
+    case NskAlgoReasonUserProfileChanged:
+      reasonStr = @"User profile changed";
+      break;
+    default:
+      reasonStr = @"UNKNOWN";
       break;
   }
-  printf("%s", [stateStr UTF8String]);
-  printf("\n");
+  if(self._algoStateAndReasonChannelStreamHandler.sink != nil) {
+    NSDictionary* bandPowerData = @{
+                                    @"state": stateStr,
+                                    @"reason": reasonStr,
+                                    };
+    NSError* err;
+    NSData* jsonData = [NSJSONSerialization dataWithJSONObject:bandPowerData options:0 error:&err];
+    NSString* jsonBandPowerDataString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    self._algoStateAndReasonChannelStreamHandler.sink(jsonBandPowerDataString);
+  }
 }
 
 - (void)attAlgoIndex:(NSNumber *)att_index {
@@ -268,28 +282,6 @@
   if(self._meditationChannelStreamHandler.sink != nil) {
     self._meditationChannelStreamHandler.sink(med_index);
   }
-}
-
-- (void)signalQuality:(NskAlgoSignalQuality)signalQuality {
-  NSMutableString* signalStr = [[NSMutableString alloc] init];
-  [signalStr setString:@""];
-  [signalStr appendString:@"Signal quailty: "];
-  switch (signalQuality) {
-    case NskAlgoSignalQualityGood:
-      [signalStr appendString:@"Good"];
-      break;
-    case NskAlgoSignalQualityMedium:
-      [signalStr appendString:@"Medium"];
-      break;
-    case NskAlgoSignalQualityNotDetected:
-      [signalStr appendString:@"Not detected"];
-      break;
-    case NskAlgoSignalQualityPoor:
-      [signalStr appendString:@"Poor"];
-      break;
-  }
-  printf("%s", [signalStr UTF8String]);
-  printf("\n");
 }
 
 @end
@@ -367,8 +359,8 @@
     //Feed-in EEG data to the EEG Algo SDK
     [self._nskAlgoSdk dataStream:NskAlgoDataTypeMed data:meditation_input length:1];
   } else {
-    if(self._meditationChannelStreamHandler.sink != nil) {
-      self._meditationChannelStreamHandler.sink([NSNumber numberWithInt:poorSignal]);
+    if(self._signalQualityChannelStreamHandler.sink != nil) {
+      self._signalQualityChannelStreamHandler.sink([NSNumber numberWithInt:poorSignal]);
     }
     if(self._attentionChannelStreamHandler.sink != nil) {
       self._attentionChannelStreamHandler.sink([NSNumber numberWithInt:attention]);

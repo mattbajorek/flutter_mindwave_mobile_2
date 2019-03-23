@@ -18,7 +18,8 @@ class _MyAppState extends State<MyApp> {
   FlutterMindWaveMobile2 flutterMindWaveMobile2 = FlutterMindWaveMobile2();
 
   MWMConnectionState _connectingState = MWMConnectionState.disconnected;
-  StreamSubscription _scanSubscription;
+  StreamSubscription<ScanResult> _scanSubscription;
+  StreamSubscription<MWMConnectionState> _connectionSubscription;
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +116,7 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _connectingState = MWMConnectionState.connecting;
     });
-    flutterMindWaveMobile2
+    _connectionSubscription = flutterMindWaveMobile2
         .connect(device.id.toString())
         .listen((MWMConnectionState connectionState) {
       if (connectionState == MWMConnectionState.connected) {
@@ -129,6 +130,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _disconnect() {
+    _connectionSubscription.cancel();
     setState(() {
       _connectingState = MWMConnectionState.disconnected;
     });
@@ -164,6 +166,9 @@ class _MyAppState extends State<MyApp> {
     return Expanded(
       child: Column(
         children: <Widget>[
+          _header("Algo State and Reason"),
+          _algoStateAndReasonStreamBuilder(),
+          Spacer(),
           _header("Attention (Att)"),
           _dataStreamBuilder("Attention", flutterMindWaveMobile2.onAttention()),
           Spacer(),
@@ -179,6 +184,29 @@ class _MyAppState extends State<MyApp> {
           Spacer(),
         ],
       ),
+    );
+  }
+
+  Widget _algoStateAndReasonStreamBuilder() {
+    return StreamBuilder(
+      stream: flutterMindWaveMobile2.onAlgoStateAndReason(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          var algoStateAndReason = snapshot.data as AlgoStateAndReason;
+          return Column(
+            children: <Widget>[
+              _value("state: ${algoStateAndReason.state.toString().split('.').last}"),
+              _value("reason: ${algoStateAndReason.reason.toString().split('.').last}"),
+            ],
+          );
+        }
+        return Column(
+          children: <Widget>[
+            _value("state: N/A"),
+            _value("reason: N/A"),
+          ],
+        );
+      },
     );
   }
 
@@ -225,10 +253,10 @@ class _MyAppState extends State<MyApp> {
 
   Widget _header(String text) {
     return Text(text,
-        style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold));
+        style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold));
   }
 
   Widget _value(String text) {
-    return Text(text, style: TextStyle(fontSize: 20.0));
+    return Text(text, style: TextStyle(fontSize: 16.0));
   }
 }

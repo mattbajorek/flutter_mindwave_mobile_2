@@ -14,6 +14,7 @@
 
 @interface NskAlgoSdkDelegateHandler : NSObject<NskAlgoSdkDelegate>
 -(id)initWithVariables: (FlutterMethodChannel*) connectionChannel
+                        algoStateAndReasonChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) algoStateAndReasonChannelStreamHandler
                         attentionChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) attentionChannelStreamHandler
                         bandPowerChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) bandPowerChannelStreamHandler
                         eyeBlinkChannelStreamHandler: (FlutterMindWaveMobile2StreamHandler*) eyeBlinkChannelStreamHandler

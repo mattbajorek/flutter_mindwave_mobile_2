@@ -9,6 +9,7 @@ class FlutterMindWaveMobile2 {
   final StreamController<MWMConnectionState> _mwmConnectionStreamController = StreamController<MWMConnectionState>();
   
   final MethodChannel _connectionChannel = MethodChannel('$NAMESPACE/connection');
+  final EventChannel _algoStateAndReasonChannel = EventChannel('$NAMESPACE/algoStateAndReason');
   final EventChannel _attentionChannel = EventChannel('$NAMESPACE/attention');
   final EventChannel _bandPowerChannel = EventChannel('$NAMESPACE/bandPower');
   final EventChannel _eyeBlinkChannel = EventChannel('$NAMESPACE/eyeBlink');
@@ -36,6 +37,17 @@ class FlutterMindWaveMobile2 {
     } else if (call.method == 'disconnected') {
       _mwmConnectionStreamController.add(MWMConnectionState.disconnected);
     }
+  }
+
+  // Receives algo state and reason data
+  Stream<AlgoStateAndReason> onAlgoStateAndReason() {
+    return _algoStateAndReasonChannel.receiveBroadcastStream()
+      .map((data) {
+        final json = JSON.jsonDecode(data);
+        final state = json['state'] as String;
+        final reason = json['reason'] as String;
+        return new AlgoStateAndReason(state, reason);
+      });
   }
 
   // Receives attention data
@@ -82,6 +94,92 @@ enum MWMConnectionState {
   scanning, // not used in package, but used in example
   connecting,
   connected
+}
+
+enum AlgoState {
+  inited,
+  analysingBulkData,
+  collectingBaseline,
+  pause,
+  running,
+  stop,
+  uninited
+}
+
+enum AlgoReason {
+  baselineExpired,
+  byUser,
+  cbChanged,
+  configChanged,
+  noBaseline,
+  signalQuality,
+  userProfileChanged,
+  unknown
+}
+
+class AlgoStateAndReason {
+  final AlgoState state;
+  final AlgoReason reason;
+
+  AlgoStateAndReason._(this.state, this.reason);
+
+  factory AlgoStateAndReason(String stateStr, String reasonStr) {
+    AlgoState state;
+    switch (stateStr) {
+      case "Inited":
+        state = AlgoState.inited;
+        break;
+      case "Analysing Bulk Data":
+        state = AlgoState.analysingBulkData;
+        break;
+      case "Collecting Baseline":
+        state = AlgoState.collectingBaseline;
+        break;
+      case "Pause":
+        state = AlgoState.pause;
+        break;
+      case "Running":
+        state = AlgoState.running;
+        break;
+      case "Stop":
+        state = AlgoState.stop;
+        break;
+      case "Uninited":
+        state = AlgoState.uninited;
+        break;
+    }
+    AlgoReason reason;
+    switch (reasonStr) {
+      case "Baseline Expired":
+        reason = AlgoReason.baselineExpired;
+        break;
+      case "By User":
+        reason = AlgoReason.byUser;
+        break;
+      case "CB Changed":
+        reason = AlgoReason.cbChanged;
+        break;
+      case "Config Changed":
+        reason = AlgoReason.configChanged;
+        break;
+      case "No Baseline":
+        reason = AlgoReason.noBaseline;
+        break;
+      case "Signal Quality":
+        reason = AlgoReason.signalQuality;
+        break;
+      case "User Profile Changed":
+        reason = AlgoReason.userProfileChanged;
+        break;
+      default:
+        reason = AlgoReason.unknown;
+        break;
+    }
+    return new AlgoStateAndReason._(state, reason);
+  }
+
+  @override
+  String toString() => "state: $state, reason: $reason";
 }
 
 class BandPower {
