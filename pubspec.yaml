@@ -1,8 +1,8 @@
 name: flutter_mindwave_mobile_2
-description: A new flutter plugin project.
+description: NeuroSky MindWave Mobile 2 plugin for Flutter
 version: 0.0.1
-author:
-homepage:
+author: Matthew Bajorek <bajorek.matthew@gmail.com>
+homepage: https://github.com/mattbajorek/flutter_mindwave_mobile_2
 
 environment:
   sdk: ">=2.0.0-dev.68.0 <3.0.0"
