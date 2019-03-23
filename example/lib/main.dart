@@ -1,10 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mindwave_mobile_2/flutter_mindwave_mobile_2.dart';
 
-void main() => runApp(MyApp());
+void main() => SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]).then((_) => runApp(MyApp()));
 
 class MyApp extends StatefulWidget {
   @override
