@@ -1,5 +1,5 @@
 <p align="center">
-<img alt="FlutterMindWaveMobile2" src="https://github.com/mattbajorek/flutter_mindwave_mobile_2/blob/master/example/site/Flutter%20MindWave%20Mobile%202%20Android%20Example.png?raw=true" style="max-width: 300px"/>
+<img alt="FlutterMindWaveMobile2" src="https://github.com/mattbajorek/flutter_mindwave_mobile_2/blob/master/example/site/Flutter%20MindWave%20Mobile%202%20Android%20Example.png?raw=true" width="300px"/>
 </p>
 
 ## Setup Hardwave
