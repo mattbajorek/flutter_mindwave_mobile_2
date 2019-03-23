@@ -230,9 +230,9 @@ class _MyAppState extends State<MyApp> {
           var bandPower = snapshot.data as BandPower;
           return Column(
             children: <Widget>[
-              _value("alpha: ${bandPower.alpha.toString()} dB"),
               _value("delta: ${bandPower.delta.toString()} dB"),
               _value("theta: ${bandPower.theta.toString()} dB"),
+              _value("alpha: ${bandPower.alpha.toString()} dB"),
               _value("beta: ${bandPower.beta.toString()} dB"),
               _value("gamma: ${bandPower.gamma.toString()} dB"),
             ],
@@ -240,9 +240,9 @@ class _MyAppState extends State<MyApp> {
         }
         return Column(
           children: <Widget>[
-            _value("alpha: N/A"),
             _value("delta: N/A"),
             _value("theta: N/A"),
+            _value("alpha: N/A"),
             _value("beta: N/A"),
             _value("gamma: N/A"),
           ],
