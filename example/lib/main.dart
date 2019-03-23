@@ -195,8 +195,10 @@ class _MyAppState extends State<MyApp> {
           var algoStateAndReason = snapshot.data as AlgoStateAndReason;
           return Column(
             children: <Widget>[
-              _value("state: ${algoStateAndReason.state.toString().split('.').last}"),
-              _value("reason: ${algoStateAndReason.reason.toString().split('.').last}"),
+              _value(
+                  "state: ${algoStateAndReason.state.toString().split('.').last}"),
+              _value(
+                  "reason: ${algoStateAndReason.reason.toString().split('.').last}"),
             ],
           );
         }

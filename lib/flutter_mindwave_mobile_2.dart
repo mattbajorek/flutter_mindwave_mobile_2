@@ -6,15 +6,19 @@ import 'package:flutter/services.dart';
 const NAMESPACE = 'flutter_mindwave_mobile_2';
 
 class FlutterMindWaveMobile2 {
-  final StreamController<MWMConnectionState> _mwmConnectionStreamController = StreamController<MWMConnectionState>();
-  
-  final MethodChannel _connectionChannel = MethodChannel('$NAMESPACE/connection');
-  final EventChannel _algoStateAndReasonChannel = EventChannel('$NAMESPACE/algoStateAndReason');
+  final StreamController<MWMConnectionState> _mwmConnectionStreamController =
+      StreamController<MWMConnectionState>();
+
+  final MethodChannel _connectionChannel =
+      MethodChannel('$NAMESPACE/connection');
+  final EventChannel _algoStateAndReasonChannel =
+      EventChannel('$NAMESPACE/algoStateAndReason');
   final EventChannel _attentionChannel = EventChannel('$NAMESPACE/attention');
   final EventChannel _bandPowerChannel = EventChannel('$NAMESPACE/bandPower');
   final EventChannel _eyeBlinkChannel = EventChannel('$NAMESPACE/eyeBlink');
   final EventChannel _meditationChannel = EventChannel('$NAMESPACE/meditation');
-  final EventChannel _signalQualityChannel = EventChannel('$NAMESPACE/signalQuality');
+  final EventChannel _signalQualityChannel =
+      EventChannel('$NAMESPACE/signalQuality');
 
   FlutterMindWaveMobile2() {
     _connectionChannel.setMethodCallHandler(handleConnection);
@@ -22,7 +26,8 @@ class FlutterMindWaveMobile2 {
 
   Stream<MWMConnectionState> connect(String deviceId, [String licenseKey]) {
     _mwmConnectionStreamController.add(MWMConnectionState.connecting);
-    _connectionChannel.invokeMethod('connect', {'deviceId': deviceId, 'licenseKey': licenseKey});
+    _connectionChannel.invokeMethod(
+        'connect', {'deviceId': deviceId, 'licenseKey': licenseKey});
     return _mwmConnectionStreamController.stream;
   }
 
@@ -41,51 +46,51 @@ class FlutterMindWaveMobile2 {
 
   // Receives algo state and reason data
   Stream<AlgoStateAndReason> onAlgoStateAndReason() {
-    return _algoStateAndReasonChannel.receiveBroadcastStream()
-      .map((data) {
-        final json = JSON.jsonDecode(data);
-        final state = json['state'] as String;
-        final reason = json['reason'] as String;
-        return new AlgoStateAndReason(state, reason);
-      });
+    return _algoStateAndReasonChannel.receiveBroadcastStream().map((data) {
+      final json = JSON.jsonDecode(data);
+      final state = json['state'] as String;
+      final reason = json['reason'] as String;
+      return new AlgoStateAndReason(state, reason);
+    });
   }
 
   // Receives attention data
   Stream<int> onAttention() {
-    return _attentionChannel.receiveBroadcastStream()
-      .map((data) => data as int);
+    return _attentionChannel
+        .receiveBroadcastStream()
+        .map((data) => data as int);
   }
 
   // Receives band power data
   Stream<BandPower> onBandPower() {
-    return _bandPowerChannel.receiveBroadcastStream()
-      .map((data) {
-        final json = JSON.jsonDecode(data);
-        final alpha = double.parse(json['alpha']);
-        final delta = double.parse(json['delta']);
-        final theta = double.parse(json['theta']);
-        final beta = double.parse(json['beta']);
-        final gamma = double.parse(json['gamma']);
-        return new BandPower(alpha, delta, theta, beta, gamma);
-      });
+    return _bandPowerChannel.receiveBroadcastStream().map((data) {
+      final json = JSON.jsonDecode(data);
+      final alpha = double.parse(json['alpha']);
+      final delta = double.parse(json['delta']);
+      final theta = double.parse(json['theta']);
+      final beta = double.parse(json['beta']);
+      final gamma = double.parse(json['gamma']);
+      return new BandPower(alpha, delta, theta, beta, gamma);
+    });
   }
 
   // Receives eye blink data
   Stream<int> onEyeBlink() {
-    return _eyeBlinkChannel.receiveBroadcastStream()
-      .map((data) => data as int);
+    return _eyeBlinkChannel.receiveBroadcastStream().map((data) => data as int);
   }
 
   // Receives meditation data
   Stream<int> onMeditation() {
-    return _meditationChannel.receiveBroadcastStream()
-      .map((data) => data as int);
+    return _meditationChannel
+        .receiveBroadcastStream()
+        .map((data) => data as int);
   }
 
   // Receives signal quality data
   Stream<int> onSignalQuality() {
-    return _signalQualityChannel.receiveBroadcastStream()
-      .map((data) => data as int);
+    return _signalQualityChannel
+        .receiveBroadcastStream()
+        .map((data) => data as int);
   }
 }
 
@@ -192,5 +197,6 @@ class BandPower {
   BandPower(this.delta, this.theta, this.alpha, this.beta, this.gamma);
 
   @override
-  String toString() => "delta: $delta, theta: $theta, alpha: $alpha, beta: $beta, gamma: $gamma";
+  String toString() =>
+      "delta: $delta, theta: $theta, alpha: $alpha, beta: $beta, gamma: $gamma";
 }
