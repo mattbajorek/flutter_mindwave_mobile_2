@@ -4,7 +4,7 @@
 
 ## Setup Hardwave
 
-1. Connect device to computer (will not work on emulator)
+1. Connect device to computer (will **NOT** connect to MindWave Mobile 2 on emulator and will **NOT** build on iOS simulator)
 2. Turn on Bluetooth
 3. Turn on MindWave Mobile 2
 4. Android will be prompted to enter authentication key when connecting.  Enter **0000**

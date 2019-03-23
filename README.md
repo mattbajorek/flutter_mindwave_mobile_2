@@ -16,6 +16,10 @@ Android by default uses the EEG Algorithm, but iOS requires a license key to use
 
 Please [contact Neurosky](http://neurosky.com/contact-us/) for a client specific license key.
 
+## Note: Will only work on actual devices
+
+This plugin will **NOT** connect in Android Emulator and will **NOT** build on iOS simulator.
+
 ## Supported Algorithms
 
 All algorithm data have a fixed output interval of 1 second.
