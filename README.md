@@ -38,7 +38,7 @@ Add `flutter_mindwave_mobile_2` as a [dependency in your pubspec.yaml file](http
 
 ```yaml
 dependencies:
-  flutter_mindwave_mobile_2: '^0.0.1'
+  flutter_mindwave_mobile_2: '^0.1.0'
 ```
 
 Then import the plugin into your dart file.

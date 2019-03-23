@@ -1,6 +1,6 @@
 name: flutter_mindwave_mobile_2
-description: NeuroSky MindWave Mobile 2 plugin for Flutter
-version: 0.0.1
+description: NeuroSky MindWave Mobile 2 plugin for Flutter that aims to offer the most from both Android Developer Tools 4.2 and iOS Developer Tools 4.8 from Neurosky
+version: 0.1.0
 author: Matthew Bajorek <bajorek.matthew@gmail.com>
 homepage: https://github.com/mattbajorek/flutter_mindwave_mobile_2
 
