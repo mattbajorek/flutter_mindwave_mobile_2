@@ -212,7 +212,7 @@ var signalQualitySubscription = flutterMindWaveMobile2
 | unknown                                               |
 
 ## Inspiration
-This plugin is heavily inspired by [react-native-mindwave-mobile](https://www.npmjs.com/package/react-native-mindwave-mobile).
+This plugin is inspired by [react-native-mindwave-mobile](https://www.npmjs.com/package/react-native-mindwave-mobile), but adds on the EGG Algorithm SDK.
 
 ## Affiliation
 This plugin is not affiliated or sponsored by [Neurosky](http://neurosky.com/) in any way.
