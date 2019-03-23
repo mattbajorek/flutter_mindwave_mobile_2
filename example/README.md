@@ -1,16 +1,40 @@
-# flutter_mindwave_mobile_2_example
+<p align="center">
+<img alt="FlutterMindWaveMobile2" src="https://github.com/mattbajorek/flutter_mindwave_mobile_2/blob/master/example/site/Flutter%20MindWave%20Mobile%202%20Android%20Example.png?raw=true" style="max-width: 300px"/>
+</p>
 
-Demonstrates how to use the flutter_mindwave_mobile_2 plugin.
+## Setup Hardwave
 
-## Getting Started
+1. Connect device to computer (will not work on emulator)
+2. Turn on Bluetooth
+3. Turn on MindWave Mobile 2
+4. Android will be prompted to enter authentication key when connecting.  Enter **0000**
 
-This project is a starting point for a Flutter application.
+## Setup Example
 
-A few resources to get you started if this is your first Flutter project:
+### 1. Get a local copy of the repo
 
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
+```
+// For ssh
+git clone git@github.com:mattbajorek/flutter_mindwave_mobile_2.git
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+// For https
+git clone https://github.com/mattbajorek/flutter_mindwave_mobile_2.git
+```
+
+### 2. Go into example directory
+
+```
+cd flutter_mindwave_mobile_2/example/
+```
+
+### 3. Run example
+
+```
+flutter run
+```
+
+## Running example
+
+1. Press connect to automatically connect to device.
+2. When connected, values will initially show **N/A**.
+3. Wait a few seconds and if there is a good connection, data will start flowing and updating on the screen.
