@@ -1,3 +1,5 @@
+[![pub package](https://img.shields.io/pub/v/flutter_mindwave_mobile_2.svg)](https://pub.dartlang.org/packages/flutter_mindwave_mobile_2)
+
 <p align="center">
 <img alt="FlutterMindWaveMobile2" src="https://github.com/mattbajorek/flutter_mindwave_mobile_2/blob/master/site/flutter_mindwave_mobile_2.png?raw=true" />
 </p>
